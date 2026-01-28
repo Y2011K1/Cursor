@@ -256,7 +256,7 @@ export default async function ClassroomPage({ params }: ClassroomPageProps) {
                 <CardHeader>
                   <CardTitle className="text-deep-teal">No Content Available</CardTitle>
                   <CardDescription>
-                    This classroom doesn't have any published content yet
+                    This classroom doesn&apos;t have any published content yet
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

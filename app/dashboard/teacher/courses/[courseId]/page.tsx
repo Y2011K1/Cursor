@@ -105,7 +105,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                       <BookOpen className="h-5 w-5" />
                       Lessons
                     </CardTitle>
-                    <AddLessonDialog courseId={course.id} />
+                    <AddLessonDialog classroomId={classroom?.id || ""} />
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -167,7 +167,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                       <FileText className="h-5 w-5" />
                       Quizzes (Assignments)
                     </CardTitle>
-                    <AddQuizDialog courseId={course.id} />
+                    <AddQuizDialog classroomId={classroom?.id || ""} />
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -225,7 +225,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                       <GraduationCap className="h-5 w-5" />
                       Exams
                     </CardTitle>
-                    <AddExamDialog courseId={course.id} />
+                    <AddExamDialog classroomId={classroom?.id || ""} />
                   </div>
                 </CardHeader>
                 <CardContent>

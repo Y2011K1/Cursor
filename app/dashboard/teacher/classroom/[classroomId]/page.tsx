@@ -60,7 +60,7 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
           <div className="text-center max-w-md">
             <h1 className="text-2xl font-bold text-deep-teal mb-2">Classroom Not Found</h1>
             <p className="text-slate-blue mb-4">
-              The classroom you're trying to access doesn't exist or you don't have permission to view it.
+              The classroom you&apos;re trying to access doesn&apos;t exist or you don&apos;t have permission to view it.
             </p>
             {classroomError && (
               <div className="mt-4 p-4 bg-warm-coral/10 rounded-md">

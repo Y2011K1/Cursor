@@ -206,7 +206,8 @@ export default async function QuizDetailPage({ params }: QuizDetailPageProps) {
                   </Button>
                   <DeleteQuizButton
                     quizId={quiz.id}
-                    courseId={params.courseId}
+                    quizTitle={quiz.title}
+                    classroomId={classroom?.id || ""}
                   />
                 </CardContent>
               </Card>

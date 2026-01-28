@@ -30,7 +30,7 @@ export default function DashboardError({
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-slate-blue">
-            This might happen if your profile hasn't been created yet. Please try logging out and back in.
+            This might happen if your profile hasn&apos;t been created yet. Please try logging out and back in.
           </p>
           <div className="flex gap-2">
             <Button

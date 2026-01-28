@@ -39,7 +39,7 @@ export default async function DashboardPage() {
     }
 
     // Validate profile has a role
-    if (!profile.role) {
+    if (!profile || !profile.role) {
       redirect("/dashboard/debug?error=role_missing")
     }
 

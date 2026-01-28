@@ -62,7 +62,7 @@ export function DeleteLessonButton({ lessonId, lessonTitle, classroomId }: Delet
           <DialogHeader>
             <DialogTitle>Delete Lesson</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{lessonTitle}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{lessonTitle}&quot;? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -141,14 +141,14 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
 
       // If uploading a file, upload it first
       if (uploadMethod === "upload" && selectedVideoFile) {
-        finalVideoUrl = await handleVideoUpload(data.title)
+        finalVideoUrl = await handleVideoUpload(data.title) || null
         if (!finalVideoUrl) {
           setIsSubmitting(false)
           return
         }
         videoProvider = "bunny.net"
       } else if (data.video_url) {
-        videoProvider = detectVideoProvider(data.video_url)
+        videoProvider = detectVideoProvider(data.video_url) || null
       }
 
       // Get current max order_index for this classroom

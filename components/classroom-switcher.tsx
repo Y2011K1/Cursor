@@ -34,8 +34,8 @@ export function ClassroomSwitcher({ currentClassroomId, classrooms }: ClassroomS
     if (currentClassroomId && classrooms.length > 0) {
       const current = classrooms.find((c) => c.id === currentClassroomId)
       setSelectedClassroom(current || classrooms[0] || null)
-    } else if (classrooms.length > 0 && !selectedClassroom) {
-      setSelectedClassroom(classrooms[0])
+    } else if (classrooms.length > 0) {
+      setSelectedClassroom((prev) => prev || classrooms[0])
     }
   }, [currentClassroomId, classrooms])
 

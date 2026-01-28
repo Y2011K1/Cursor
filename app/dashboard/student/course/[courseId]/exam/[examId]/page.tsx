@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -184,48 +184,7 @@ export default function StudentExamPage({ params }: ExamPageProps) {
     return () => clearTimeout(longLoadingTimer)
   }, [courseId, examId, router, supabase])
 
-  useEffect(() => {
-    if (timeRemaining !== null && timeRemaining > 0 && !submission?.is_completed) {
-      const timer = setInterval(() => {
-        setTimeRemaining((prev) => {
-          if (prev === null || prev <= 1) {
-            clearInterval(timer)
-            // Auto-submit when time runs out
-            if (prev !== null && prev <= 1) {
-              handleSubmit(true)
-            }
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-
-      return () => clearInterval(timer)
-    }
-  }, [timeRemaining, submission])
-
-  const handleAnswerChange = async (questionId: string, answer: string) => {
-    if (!submission || submission.is_completed) return
-
-    setAnswers((prev) => ({ ...prev, [questionId]: answer }))
-
-    // Save answer immediately (use RPC function to handle unique constraint)
-    try {
-      const { error } = await supabase.rpc("upsert_exam_answer", {
-        p_submission_id: submission.id,
-        p_question_id: questionId,
-        p_selected_answer: answer,
-      })
-
-      if (error) {
-        console.error("Error saving answer:", error)
-      }
-    } catch (error) {
-      console.error("Error saving answer:", error)
-    }
-  }
-
-  const handleSubmit = async (autoSubmit = false) => {
+  const handleSubmit = useCallback(async (autoSubmit = false) => {
     if (!submission || submission.is_completed) return
 
     if (!autoSubmit && !confirm("Are you sure you want to submit? You cannot retake this exam.")) {
@@ -283,6 +242,47 @@ export default function StudentExamPage({ params }: ExamPageProps) {
       alert(`Failed to submit exam: ${error.message || "Please try again."}`)
     } finally {
       setIsSubmitting(false)
+    }
+  }, [submission, startTime, answers, supabase, router])
+
+  useEffect(() => {
+    if (timeRemaining !== null && timeRemaining > 0 && !submission?.is_completed) {
+      const timer = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev === null || prev <= 1) {
+            clearInterval(timer)
+            // Auto-submit when time runs out
+            if (prev !== null && prev <= 1) {
+              handleSubmit(true)
+            }
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+
+      return () => clearInterval(timer)
+    }
+  }, [timeRemaining, submission, handleSubmit])
+
+  const handleAnswerChange = async (questionId: string, answer: string) => {
+    if (!submission || submission.is_completed) return
+
+    setAnswers((prev) => ({ ...prev, [questionId]: answer }))
+
+    // Save answer immediately (use RPC function to handle unique constraint)
+    try {
+      const { error } = await supabase.rpc("upsert_exam_answer", {
+        p_submission_id: submission.id,
+        p_question_id: questionId,
+        p_selected_answer: answer,
+      })
+
+      if (error) {
+        console.error("Error saving answer:", error)
+      }
+    } catch (error) {
+      console.error("Error saving answer:", error)
     }
   }
 

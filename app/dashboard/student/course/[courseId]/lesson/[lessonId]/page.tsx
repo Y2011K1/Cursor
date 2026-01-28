@@ -78,10 +78,10 @@ export default async function StudentLessonPage({ params }: LessonPageProps) {
     .order("order_index", { ascending: true })
 
   const currentIndex = allLessons?.findIndex((l) => l.id === params.lessonId) || -1
-  const nextLesson = currentIndex >= 0 && currentIndex < (allLessons?.length || 0) - 1
+  const nextLesson = currentIndex >= 0 && currentIndex < (allLessons?.length || 0) - 1 && allLessons
     ? allLessons[currentIndex + 1]
     : null
-  const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null
+  const prevLesson = currentIndex > 0 && allLessons ? allLessons[currentIndex - 1] : null
 
   return (
     <div className="min-h-screen bg-light-sky">

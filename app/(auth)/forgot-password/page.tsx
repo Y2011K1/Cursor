@@ -115,7 +115,7 @@ export default function ForgotPasswordPage() {
               Reset Password
             </CardTitle>
             <CardDescription className="text-slate-blue">
-              Enter your email address and we'll send you a password reset link.
+              Enter your email address and we&apos;ll send you a password reset link.
               <br />
               <span className="text-xs text-warm-coral mt-1 block">
                 Note: Teachers should contact an administrator to change their password.
