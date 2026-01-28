@@ -1,0 +1,184 @@
+import { redirect, notFound } from "next/navigation"
+import { requireRole } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Navigation } from "@/components/navigation"
+import { ArrowLeft, PlayCircle, CheckCircle2, Clock } from "lucide-react"
+import Link from "next/link"
+import { MarkCompleteButton } from "@/components/mark-complete-button"
+import { VideoPlayer } from "@/components/video-player"
+
+interface LessonPageProps {
+  params: {
+    courseId: string
+    lessonId: string
+  }
+}
+
+export default async function StudentLessonPage({ params }: LessonPageProps) {
+  const profile = await requireRole("student")
+  const supabase = await createClient()
+
+  // Note: courseId parameter is now actually classroomId (for backward compatibility with routes)
+  // Get classroom and verify access
+  const { data: classroom } = await supabase
+    .from("classrooms")
+    .select("id, name")
+    .eq("id", params.courseId)
+    .eq("is_active", true)
+    .single()
+
+  if (!classroom) {
+    notFound()
+  }
+
+  // Verify enrollment
+  const { data: enrollment } = await supabase
+    .from("enrollments")
+    .select("id")
+    .eq("student_id", profile.id)
+    .eq("classroom_id", classroom.id)
+    .eq("is_active", true)
+    .single()
+
+  if (!enrollment) {
+    redirect("/dashboard/student")
+  }
+
+  // Get lesson (now linked to classroom_id)
+  const { data: lesson } = await supabase
+    .from("lessons")
+    .select("*")
+    .eq("id", params.lessonId)
+    .eq("classroom_id", params.courseId)
+    .eq("is_published", true)
+    .single()
+
+  if (!lesson) {
+    notFound()
+  }
+
+  // Get lesson progress
+  const { data: progress } = await supabase
+    .from("lesson_progress")
+    .select("*")
+    .eq("student_id", profile.id)
+    .eq("lesson_id", params.lessonId)
+    .single()
+
+  const isCompleted = progress?.is_completed || false
+
+  // Get all lessons in classroom for navigation
+  const { data: allLessons } = await supabase
+    .from("lessons")
+    .select("id, title, order_index")
+    .eq("classroom_id", params.courseId)
+    .eq("is_published", true)
+    .order("order_index", { ascending: true })
+
+  const currentIndex = allLessons?.findIndex((l) => l.id === params.lessonId) || -1
+  const nextLesson = currentIndex >= 0 && currentIndex < (allLessons?.length || 0) - 1
+    ? allLessons[currentIndex + 1]
+    : null
+  const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null
+
+  return (
+    <div className="min-h-screen bg-light-sky">
+      <Navigation userRole="student" userName={profile.full_name} />
+      <div className="p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-6">
+            <Button variant="outline" asChild className="mb-4">
+              <Link href="/dashboard/student">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Link>
+            </Button>
+            <div className="flex items-start justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-deep-teal mb-2">
+                  {lesson.title}
+                </h1>
+                {isCompleted && (
+                  <div className="flex items-center gap-2 text-success-green">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span className="font-medium">Completed</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <Card className="border-0 shadow-md mb-6">
+            <CardContent className="p-6">
+              {lesson.video_url && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-deep-teal mb-3 flex items-center gap-2">
+                    <PlayCircle className="h-5 w-5" />
+                    Video Lesson
+                  </h3>
+                  <div className="aspect-video bg-slate-200 rounded-lg overflow-hidden">
+                    <VideoPlayer
+                      videoUrl={lesson.video_url}
+                      videoProvider={lesson.video_provider}
+                      lessonId={params.lessonId}
+                      studentId={profile.id}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {lesson.content && (
+                <div>
+                  <h3 className="text-lg font-semibold text-deep-teal mb-3">
+                    Lesson Content
+                  </h3>
+                  <div className="prose max-w-none text-slate-blue whitespace-pre-wrap">
+                    {lesson.content}
+                  </div>
+                </div>
+              )}
+
+              {!lesson.video_url && !lesson.content && (
+                <p className="text-slate-blue italic">
+                  No content available for this lesson yet.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="flex items-center justify-between">
+            <MarkCompleteButton
+              lessonId={params.lessonId}
+              studentId={profile.id}
+              isCompleted={isCompleted}
+            />
+            <div className="flex gap-2">
+              {prevLesson && (
+                <Button variant="outline" asChild>
+                  <Link href={`/dashboard/student/course/${params.courseId}/lesson/${prevLesson.id}`}>
+                    Previous Lesson
+                  </Link>
+                </Button>
+              )}
+              {nextLesson ? (
+                <Button className="bg-deep-teal hover:bg-deep-teal/90" asChild>
+                  <Link href={`/dashboard/student/course/${params.courseId}/lesson/${nextLesson.id}`}>
+                    Next Lesson
+                  </Link>
+                </Button>
+              ) : (
+                <Button variant="outline" asChild>
+                <Link href="/dashboard/student">
+                  Back to Dashboard
+                </Link>
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
