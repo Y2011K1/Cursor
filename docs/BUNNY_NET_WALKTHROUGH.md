@@ -97,9 +97,8 @@ Notes:
 
 1. Teacher goes to a classroom → **Lessons** → **Add Lesson**.
 2. In the lesson form they can:
-   - **Upload a video**: file is sent to your server → your server creates a video in Bunny Stream → uploads the file to Bunny → saves the returned CDN URL in the lesson.
-   - **Paste a URL**: e.g. a Bunny link or YouTube/Vimeo; the app stores that URL and uses it for playback.
-3. The app uses `lib/bunny.ts` and `app/actions/video.ts` for create + upload; the lesson’s `video_url` and `video_provider` are stored in your database.
+   - **Upload a video**: file is sent to your app → your app creates a video in Bunny Stream → uploads the file to Bunny → saves the returned CDN URL in the lesson. Video is upload-only (no URL paste).
+3. The app uses `lib/bunny.ts` and `app/api/upload/video` for create + upload; the lesson’s `video_url` and `video_provider` are stored in your database.
 
 ### Playback (student)
 
@@ -122,9 +121,8 @@ So: **you only need to complete Steps 1–4**; the rest is already implemented.
 2. Log in as a **teacher**.
 3. Open a classroom → **Lessons** → **Add Lesson**.
 4. Enter a title, then:
-   - Either **upload a short video** (e.g. a few MB), or  
-   - Use **“Use URL”** and paste a Bunny video URL if you already have one.
-5. Save the lesson.
+   - **Upload a short video** (e.g. a few MB). Video is upload-only (no URL).  
+“Use URL”5. Save the lesson.
 6. Open that lesson as a **student** (or in an incognito window as another user) and confirm the video loads and plays.
 
 If upload fails, check the browser console and server logs; the next section will help.

@@ -51,7 +51,7 @@ export async function uploadVideo(formData: FormData) {
   }
 
   try {
-    // Step 1: Create video object in Bunny Stream
+    // Step 1: Create video object in Bunny Stream (uses API route for large files; action kept for compatibility)
     const videoData = await createBunnyVideo(title)
     if (!videoData) {
       return {

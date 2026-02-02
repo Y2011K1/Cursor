@@ -104,12 +104,9 @@ The platform uses 480p by default, but you can modify the URL to use other quali
 - Check that the video has finished processing in Bunny.net
 - Ensure the video URL format is correct
 
-## Alternative: Manual URL Entry
+## Video: Upload only
 
-If you prefer not to use the upload feature, teachers can still:
-1. Upload videos manually to Bunny.net dashboard
-2. Copy the video URL
-3. Paste it in the "Use URL" option when creating a lesson
+Teachers add video by uploading a file when creating a lesson. There is no URL paste option; videos are uploaded directly to Bunny.net from the Add Lesson dialog.
 
 ## Next Steps
 

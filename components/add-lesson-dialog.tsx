@@ -17,9 +17,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Plus, Loader2, Upload, Video } from "lucide-react"
+import { Plus, Loader2, Video } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
-import { uploadVideo } from "@/app/actions/video"
 
 const lessonSchema = z.object({
   title: z.string().min(2, "Lesson title must be at least 2 characters"),
@@ -81,28 +80,30 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
       formData.append("title", title)
 
       const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval)
-            return 90
-          }
-          return prev + 10
-        })
+        setUploadProgress((prev) => (prev >= 90 ? 90 : prev + 10))
       }, 500)
 
-      const result = await uploadVideo(formData)
+      const res = await fetch("/api/upload/video", {
+        method: "POST",
+        body: formData,
+      })
 
       clearInterval(progressInterval)
       setUploadProgress(100)
 
-      if (!result.success) {
-        setError(result.error || "Failed to upload video")
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(data.error || `Upload failed (${res.status})`)
         setIsUploading(false)
         return null
       }
-
+      if (!data.videoUrl) {
+        setError("Upload succeeded but no video URL returned.")
+        setIsUploading(false)
+        return null
+      }
       setIsUploading(false)
-      return result.videoUrl ?? null
+      return data.videoUrl as string
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to upload video")
       setIsUploading(false)
@@ -193,7 +194,7 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
         <DialogHeader>
           <DialogTitle className="text-deep-teal">Add New Lesson</DialogTitle>
           <DialogDescription>
-            Add a lesson with optional video (upload only). Video is stored and streamed via Bunny.net.
+            Add a lesson. Video is optional: upload a file only (no URL). Videos are stored on Bunny.net.
           </DialogDescription>
         </DialogHeader>
 
@@ -233,7 +234,7 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
           </div>
 
           <div className="space-y-2">
-            <Label>Video (optional)</Label>
+            <Label>Video (optional) — upload file only, no URL</Label>
             <div className="border-2 border-dashed border-slate-blue/30 rounded-lg p-5 text-center bg-light-sky/50">
               <input
                 ref={fileInputRef}
