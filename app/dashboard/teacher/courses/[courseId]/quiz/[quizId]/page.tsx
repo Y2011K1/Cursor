@@ -11,13 +11,11 @@ import { PublishQuizButton } from "@/components/publish-quiz-button"
 import { DeleteQuizButton } from "@/components/delete-quiz-button"
 
 interface QuizDetailPageProps {
-  params: {
-    courseId: string
-    quizId: string
-  }
+  params: Promise<{ courseId: string; quizId: string }>
 }
 
 export default async function QuizDetailPage({ params }: QuizDetailPageProps) {
+  const { courseId, quizId } = await params
   const profile = await requireRole("teacher")
   const supabase = await createClient()
 
@@ -39,7 +37,7 @@ export default async function QuizDetailPage({ params }: QuizDetailPageProps) {
         classroom_id
       )
     `)
-    .eq("id", params.quizId)
+    .eq("id", quizId)
     .single()
 
   if (!quiz || (quiz.course as any).classroom_id !== classroom?.id) {
@@ -62,7 +60,7 @@ export default async function QuizDetailPage({ params }: QuizDetailPageProps) {
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
             <Button variant="ghost" asChild className="mb-4">
-              <Link href={`/dashboard/teacher/courses/${params.courseId}`}>
+              <Link href={`/dashboard/teacher/courses/${courseId}`}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Course
               </Link>

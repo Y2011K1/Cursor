@@ -30,28 +30,44 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 interface ClassroomDetailPageProps {
-  params: {
-    classroomId: string
-  }
+  params: Promise<{ classroomId: string }>
 }
 
 export default async function ClassroomDetailPage({ params }: ClassroomDetailPageProps) {
   try {
     noStore() // Prevent caching
+    const { classroomId } = await params
     const profile = await requireRole("teacher")
     const supabase = await createClient()
+
+    // Reject invalid UUID before querying (e.g. "undefined" from client)
+    if (!classroomId || classroomId === "undefined" || classroomId.length < 30) {
+      return (
+        <div className="min-h-screen bg-light-sky flex items-center justify-center">
+          <div className="text-center max-w-md">
+            <h1 className="text-2xl font-bold text-deep-teal mb-2">Classroom Not Found</h1>
+            <p className="text-slate-blue mb-4">
+              The classroom you&apos;re trying to access doesn&apos;t exist or you don&apos;t have permission to view it.
+            </p>
+            <div className="mt-4">
+              <a href="/dashboard/teacher" className="text-deep-teal hover:underline">Return to Dashboard</a>
+            </div>
+          </div>
+        </div>
+      )
+    }
 
     // Get teacher's classroom and verify ownership
     const { data: classroom, error: classroomError } = await supabase
       .from("classrooms")
       .select("*")
-      .eq("id", params.classroomId)
+      .eq("id", classroomId)
       .eq("teacher_id", profile.id)
       .single()
 
     if (classroomError || !classroom) {
       console.error("Classroom fetch error:", classroomError)
-      console.error("Classroom ID from params:", params.classroomId)
+      console.error("Classroom ID from params:", classroomId)
       console.error("Profile ID:", profile.id)
       
       // Return a helpful error page instead of just notFound()

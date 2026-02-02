@@ -11,13 +11,11 @@ import { PublishQuizButton } from "@/components/publish-quiz-button"
 import { DeleteQuizButton } from "@/components/delete-quiz-button"
 
 interface QuizDetailPageProps {
-  params: {
-    classroomId: string
-    quizId: string
-  }
+  params: Promise<{ classroomId: string; quizId: string }>
 }
 
 export default async function QuizDetailPage({ params }: QuizDetailPageProps) {
+  const { classroomId, quizId } = await params
   const profile = await requireRole("teacher")
   const supabase = await createClient()
 
@@ -32,7 +30,7 @@ export default async function QuizDetailPage({ params }: QuizDetailPageProps) {
   const { data: quiz } = await supabase
     .from("quizzes")
     .select("*")
-    .eq("id", params.quizId)
+    .eq("id", quizId)
     .eq("classroom_id", classroom?.id)
     .single()
 
@@ -195,7 +193,7 @@ export default async function QuizDetailPage({ params }: QuizDetailPageProps) {
                   <DeleteQuizButton
                     quizId={quiz.id}
                     quizTitle={quiz.title}
-                    classroomId={params.classroomId}
+                    classroomId={classroomId}
                   />
                 </CardContent>
               </Card>

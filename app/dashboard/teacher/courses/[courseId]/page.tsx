@@ -12,12 +12,11 @@ import { AddQuizDialog } from "@/components/add-quiz-dialog"
 import { AddExamDialog } from "@/components/add-exam-dialog"
 
 interface CourseDetailPageProps {
-  params: {
-    courseId: string
-  }
+  params: Promise<{ courseId: string }>
 }
 
 export default async function CourseDetailPage({ params }: CourseDetailPageProps) {
+  const { courseId } = await params
   const profile = await requireRole("teacher")
   const supabase = await createClient()
 
@@ -32,7 +31,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
   const { data: course } = await supabase
     .from("courses")
     .select("*")
-    .eq("id", params.courseId)
+    .eq("id", courseId)
     .eq("classroom_id", classroom?.id)
     .single()
 

@@ -11,14 +11,12 @@ import { DeleteExamButton } from "@/components/delete-exam-button"
 import { PublishExamButton } from "@/components/publish-exam-button"
 
 interface ExamDetailPageProps {
-  params: {
-    classroomId: string
-    examId: string
-  }
+  params: Promise<{ classroomId: string; examId: string }>
 }
 
 export default async function ExamDetailPage({ params }: ExamDetailPageProps) {
   try {
+    const { classroomId, examId } = await params
     const profile = await requireRole("teacher")
     const supabase = await createClient()
 
@@ -33,8 +31,8 @@ export default async function ExamDetailPage({ params }: ExamDetailPageProps) {
     const { data: exam } = await supabase
       .from("exams")
       .select("*")
-      .eq("id", params.examId)
-      .eq("classroom_id", params.classroomId)
+      .eq("id", examId)
+      .eq("classroom_id", classroomId)
       .single()
 
     if (!exam) {
@@ -85,7 +83,7 @@ export default async function ExamDetailPage({ params }: ExamDetailPageProps) {
                   <DeleteExamButton
                     examId={exam.id}
                     examTitle={exam.title}
-                    classroomId={params.classroomId}
+                    classroomId={classroomId}
                   />
                 </div>
               </div>
