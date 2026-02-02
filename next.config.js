@@ -4,14 +4,13 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
-  // Optimize production builds
-  swcMinify: true,
-  
-  // Optimize images
+
+  // Optimize images (remotePatterns replaces deprecated domains)
   images: {
-    domains: ['vz-*.b-cdn.net'],
+    remotePatterns: [
+      { protocol: 'https', hostname: '*.b-cdn.net', pathname: '/**' },
+    ],
     formats: ['image/avif', 'image/webp'],
-    // Optimize image loading
     minimumCacheTTL: 60,
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
@@ -26,7 +25,8 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: "500mb",
     },
-    // optimizeCss: true, // Disabled - requires critters package
+    // Request body size for API routes (replaces deprecated middlewareClientMaxBodySize)
+    proxyClientMaxBodySize: "500mb",
   },
   
   // Headers for security and performance

@@ -100,9 +100,9 @@ The platform uses 480p by default, but you can modify the URL to use other quali
 - Review Bunny.net dashboard for upload errors
 
 ### Videos not playing
-- Verify the CDN URL is correct
-- Check that the video has finished processing in Bunny.net
-- Ensure the video URL format is correct
+- **Enable MP4 Fallback**: In Bunny dashboard → **Stream** → your library → **Encoding** → turn on **MP4 Fallback**. Without this, `play_480p.mp4` URLs will not work.
+- Verify the CDN URL is correct and the video has finished processing in Bunny.net
+- Ensure the video URL format is correct (`https://vz-<LIBRARY_ID>.b-cdn.net/<VIDEO_ID>/play_480p.mp4`)
 
 ## Video: Upload only
 

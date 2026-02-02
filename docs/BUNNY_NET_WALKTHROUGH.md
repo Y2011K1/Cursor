@@ -136,7 +136,7 @@ If upload fails, check the browser console and server logs; the next section wil
 | **“Bunny.net Stream API credentials not configured”** | `BUNNY_STREAM_LIBRARY_ID` and `BUNNY_STREAM_API_KEY` must be set in `.env.local`. Restart the dev server after changing. |
 | **“Failed to create video”** | API key correct? Library ID matches the library? Account in good standing / not over limit? |
 | **“Failed to upload video”** | File type (e.g. MP4), size (e.g. &lt; 500MB in your app), and network. Check Bunny dashboard for the library and any errors. |
-| **Video doesn’t play** | Confirm the stored URL looks like `https://vz-<LIBRARY_ID>.b-cdn.net/...`. In Bunny dashboard, check that the video is **processed** (not stuck in “Processing”). |
+| **Video doesn’t play** | 1) In Bunny: **Stream** → your library → **Encoding** → enable **MP4 Fallback** (required for `play_480p.mp4`). 2) Confirm the video is **processed** (not stuck in “Processing”). 3) URL should look like `https://vz-<LIBRARY_ID>.b-cdn.net/<VIDEO_ID>/play_480p.mp4`. |
 | **CORS or 403 on playback** | Bunny Stream URLs are usually public; if you restricted access in Bunny, you may need to allow your domain or use signed URLs (advanced). |
 
 ---

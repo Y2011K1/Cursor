@@ -8,12 +8,11 @@ import { BookOpen, FileText, Clock, PlayCircle, CheckCircle2 } from "lucide-reac
 import Link from "next/link"
 
 interface ClassroomPageProps {
-  params: {
-    classroomId: string
-  }
+  params: Promise<{ classroomId: string }>
 }
 
 export default async function ClassroomPage({ params }: ClassroomPageProps) {
+  const { classroomId } = await params
   const profile = await requireRole("student")
   const supabase = await createClient()
 
@@ -33,7 +32,7 @@ export default async function ClassroomPage({ params }: ClassroomPageProps) {
       )
     `)
     .eq("student_id", profile.id)
-    .eq("classroom_id", params.classroomId)
+    .eq("classroom_id", classroomId)
     .eq("is_active", true)
     .single()
 
@@ -48,19 +47,19 @@ export default async function ClassroomPage({ params }: ClassroomPageProps) {
     supabase
       .from("lessons")
       .select("*")
-      .eq("classroom_id", params.classroomId)
+      .eq("classroom_id", classroomId)
       .eq("is_published", true)
       .order("order_index", { ascending: true }),
     supabase
       .from("quizzes")
       .select("*")
-      .eq("classroom_id", params.classroomId)
+      .eq("classroom_id", classroomId)
       .eq("is_published", true)
       .order("created_at", { ascending: false }),
     supabase
       .from("exams")
       .select("*")
-      .eq("classroom_id", params.classroomId)
+      .eq("classroom_id", classroomId)
       .eq("is_published", true)
       .order("created_at", { ascending: false })
   ])
@@ -152,7 +151,7 @@ export default async function ClassroomPage({ params }: ClassroomPageProps) {
                               <span className="text-xs text-slate-blue">Not started</span>
                             )}
                             <Button size="sm" asChild>
-                              <Link href={`/dashboard/student/course/${params.classroomId}/lesson/${lesson.id}`}>
+                              <Link href={`/dashboard/student/course/${classroomId}/lesson/${lesson.id}`}>
                                 View Lesson
                               </Link>
                             </Button>
@@ -196,7 +195,7 @@ export default async function ClassroomPage({ params }: ClassroomPageProps) {
                           <span>Max attempts: {quiz.max_attempts}</span>
                         </div>
                         <Button size="sm" className="w-full" asChild>
-                          <Link href={`/dashboard/student/course/${params.classroomId}/quiz/${quiz.id}`}>
+                          <Link href={`/dashboard/student/course/${classroomId}/quiz/${quiz.id}`}>
                             Take Quiz
                           </Link>
                         </Button>
@@ -239,7 +238,7 @@ export default async function ClassroomPage({ params }: ClassroomPageProps) {
                           )}
                         </div>
                         <Button size="sm" className="w-full" asChild>
-                          <Link href={`/dashboard/student/course/${params.classroomId}/exam/${exam.id}`}>
+                          <Link href={`/dashboard/student/course/${classroomId}/exam/${exam.id}`}>
                             Take Exam
                           </Link>
                         </Button>

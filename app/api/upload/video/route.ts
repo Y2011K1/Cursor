@@ -24,7 +24,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Only teachers can upload videos." }, { status: 403 })
     }
 
-    const formData = await request.formData()
+    let formData: FormData
+    try {
+      formData = await request.formData()
+    } catch (parseErr) {
+      const msg = parseErr instanceof Error ? parseErr.message : String(parseErr)
+      if (msg.includes("FormData") || msg.includes("body")) {
+        return NextResponse.json(
+          {
+            error:
+              "Request body was truncated or invalid (often due to size limit). Try a smaller video, or ensure next.config.js has experimental.middlewareClientMaxBodySize and proxyClientMaxBodySize set (e.g. 500mb), then restart the dev server.",
+          },
+          { status: 413 }
+        )
+      }
+      throw parseErr
+    }
     const videoFile = formData.get("video")
     const title = formData.get("title")
 

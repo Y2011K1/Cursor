@@ -24,6 +24,7 @@ import { PublishExamButton } from "@/components/publish-exam-button"
 import { unstable_noStore as noStore } from "next/cache"
 import { calculateRank, calculateTotalPoints } from "@/lib/ranking"
 import { ProgressBarDialog } from "@/components/progress-bar-dialog"
+import { LessonVideoStatusBadge } from "@/components/lesson-video-status-badge"
 
 // Force dynamic rendering to always fetch fresh data
 export const dynamic = 'force-dynamic'
@@ -50,7 +51,7 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
               The classroom you&apos;re trying to access doesn&apos;t exist or you don&apos;t have permission to view it.
             </p>
             <div className="mt-4">
-              <a href="/dashboard/teacher" className="text-deep-teal hover:underline">Return to Dashboard</a>
+              <a href="/dashboard/teacher" className="text-deep-teal hover:underline">Back to Dashboard</a>
             </div>
           </div>
         </div>
@@ -90,7 +91,7 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                 href="/dashboard/teacher" 
                 className="text-deep-teal hover:underline"
               >
-                Return to Dashboard
+                Back to Dashboard
               </a>
             </div>
           </div>
@@ -403,9 +404,12 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                                   {lesson.content}
                                 </p>
                               )}
-                              <div className="flex items-center gap-4 mt-2 text-xs text-slate-blue">
+                              <div className="flex items-center gap-2 flex-wrap mt-2 text-xs text-slate-blue">
                                 {lesson.video_url && (
-                                  <span>📹 Video</span>
+                                  <>
+                                    <span>📹 Video</span>
+                                    <LessonVideoStatusBadge videoUrl={lesson.video_url} />
+                                  </>
                                 )}
                                 {lesson.is_published ? (
                                   <span className="text-success-green">Published</span>
@@ -418,6 +422,7 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                               <PublishLessonButton
                                 lessonId={lesson.id}
                                 isPublished={lesson.is_published}
+                                videoUrl={lesson.video_url}
                               />
                               <EditLessonButton />
                               <DeleteLessonButton

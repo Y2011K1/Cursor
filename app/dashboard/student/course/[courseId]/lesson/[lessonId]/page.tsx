@@ -10,22 +10,20 @@ import { MarkCompleteButton } from "@/components/mark-complete-button"
 import { VideoPlayer } from "@/components/video-player"
 
 interface LessonPageProps {
-  params: {
-    courseId: string
-    lessonId: string
-  }
+  params: Promise<{ courseId: string; lessonId: string }>
 }
 
 export default async function StudentLessonPage({ params }: LessonPageProps) {
+  const { courseId, lessonId } = await params
   const profile = await requireRole("student")
   const supabase = await createClient()
 
-  // Note: courseId parameter is now actually classroomId (for backward compatibility with routes)
+  // Note: courseId parameter is actually classroomId (for backward compatibility with routes)
   // Get classroom and verify access
   const { data: classroom } = await supabase
     .from("classrooms")
     .select("id, name")
-    .eq("id", params.courseId)
+    .eq("id", courseId)
     .eq("is_active", true)
     .single()
 
@@ -50,8 +48,8 @@ export default async function StudentLessonPage({ params }: LessonPageProps) {
   const { data: lesson } = await supabase
     .from("lessons")
     .select("*")
-    .eq("id", params.lessonId)
-    .eq("classroom_id", params.courseId)
+    .eq("id", lessonId)
+    .eq("classroom_id", courseId)
     .eq("is_published", true)
     .single()
 
@@ -64,7 +62,7 @@ export default async function StudentLessonPage({ params }: LessonPageProps) {
     .from("lesson_progress")
     .select("*")
     .eq("student_id", profile.id)
-    .eq("lesson_id", params.lessonId)
+    .eq("lesson_id", lessonId)
     .single()
 
   const isCompleted = progress?.is_completed || false
@@ -73,11 +71,11 @@ export default async function StudentLessonPage({ params }: LessonPageProps) {
   const { data: allLessons } = await supabase
     .from("lessons")
     .select("id, title, order_index")
-    .eq("classroom_id", params.courseId)
+    .eq("classroom_id", courseId)
     .eq("is_published", true)
     .order("order_index", { ascending: true })
 
-  const currentIndex = allLessons?.findIndex((l) => l.id === params.lessonId) || -1
+  const currentIndex = allLessons?.findIndex((l) => l.id === lessonId) || -1
   const nextLesson = currentIndex >= 0 && currentIndex < (allLessons?.length || 0) - 1 && allLessons
     ? allLessons[currentIndex + 1]
     : null
@@ -88,25 +86,23 @@ export default async function StudentLessonPage({ params }: LessonPageProps) {
       <Navigation userRole="student" userName={profile.full_name} />
       <div className="p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-6">
-            <Button variant="outline" asChild className="mb-4">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <Button variant="ghost" size="sm" asChild className="text-slate-blue hover:text-deep-teal -ml-2">
               <Link href="/dashboard/student">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Dashboard
               </Link>
             </Button>
-            <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-deep-teal mb-2">
-                  {lesson.title}
-                </h1>
-                {isCompleted && (
-                  <div className="flex items-center gap-2 text-success-green">
-                    <CheckCircle2 className="h-5 w-5" />
-                    <span className="font-medium">Completed</span>
-                  </div>
-                )}
-              </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-3xl font-bold text-deep-teal mb-2">
+                {lesson.title}
+              </h1>
+              {isCompleted && (
+                <div className="flex items-center gap-2 text-success-green">
+                  <CheckCircle2 className="h-5 w-5" />
+                  <span className="font-medium">Completed</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -122,7 +118,7 @@ export default async function StudentLessonPage({ params }: LessonPageProps) {
                     <VideoPlayer
                       videoUrl={lesson.video_url}
                       videoProvider={lesson.video_provider}
-                      lessonId={params.lessonId}
+                      lessonId={lessonId}
                       studentId={profile.id}
                     />
                   </div>
@@ -150,31 +146,25 @@ export default async function StudentLessonPage({ params }: LessonPageProps) {
 
           <div className="flex items-center justify-between">
             <MarkCompleteButton
-              lessonId={params.lessonId}
+              lessonId={lessonId}
               studentId={profile.id}
               isCompleted={isCompleted}
             />
             <div className="flex gap-2">
               {prevLesson && (
                 <Button variant="outline" asChild>
-                  <Link href={`/dashboard/student/course/${params.courseId}/lesson/${prevLesson.id}`}>
+                  <Link href={`/dashboard/student/course/${courseId}/lesson/${prevLesson.id}`}>
                     Previous Lesson
                   </Link>
                 </Button>
               )}
               {nextLesson ? (
                 <Button className="bg-deep-teal hover:bg-deep-teal/90" asChild>
-                  <Link href={`/dashboard/student/course/${params.courseId}/lesson/${nextLesson.id}`}>
+                  <Link href={`/dashboard/student/course/${courseId}/lesson/${nextLesson.id}`}>
                     Next Lesson
                   </Link>
                 </Button>
-              ) : (
-                <Button variant="outline" asChild>
-                <Link href="/dashboard/student">
-                  Back to Dashboard
-                </Link>
-                </Button>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
