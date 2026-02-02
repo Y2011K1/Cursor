@@ -10,25 +10,34 @@ export async function uploadVideo(formData: FormData) {
   const videoFile = formData.get("video") as File
   const title = formData.get("title") as string
 
-  if (!videoFile) {
+  if (!videoFile || !(videoFile instanceof Blob)) {
     return {
       success: false,
       error: "No video file provided",
     }
   }
 
-  if (!title) {
+  if (!title || typeof title !== "string" || title.trim().length === 0) {
     return {
       success: false,
       error: "Video title is required",
     }
   }
 
-  // Validate file type
-  if (!videoFile.type.startsWith("video/")) {
+  // Detect truncated upload (e.g. body size limit exceeded)
+  if (videoFile.size === 0) {
     return {
       success: false,
-      error: "File must be a video",
+      error: "Video file is empty or upload was truncated. Ensure server allows large uploads (e.g. 500MB) and try a smaller file.",
+    }
+  }
+
+  // Validate file type (allow empty type from some clients)
+  const type = (videoFile as File).type ?? ""
+  if (type && !type.startsWith("video/")) {
+    return {
+      success: false,
+      error: "File must be a video (e.g. MP4, WebM)",
     }
   }
 

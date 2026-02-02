@@ -20,8 +20,12 @@ const nextConfig = {
   // Production optimizations
   productionBrowserSourceMaps: false,
   
-  // Experimental features for better performance
+  // Experimental features
   experimental: {
+    // Allow large video uploads (500MB) for Bunny.net
+    serverActions: {
+      bodySizeLimit: "500mb",
+    },
     // optimizeCss: true, // Disabled - requires critters package
   },
   

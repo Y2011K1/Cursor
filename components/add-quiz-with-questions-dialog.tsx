@@ -161,7 +161,7 @@ export function AddQuizWithQuestionsDialog({ classroomId }: AddQuizWithQuestions
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-soft-mint hover:bg-soft-mint/80 text-dark-text">
+        <Button size="sm" className="bg-deep-teal hover:bg-deep-teal/90 text-white">
           <Plus className="h-4 w-4 mr-2" />
           Add Quiz
         </Button>

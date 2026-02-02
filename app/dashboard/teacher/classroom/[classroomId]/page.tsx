@@ -270,14 +270,14 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
     return (
       <div className="min-h-screen bg-light-sky">
         <Navigation userRole="teacher" userName={profile.full_name} />
-        <div className="p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <div className="bg-gradient-to-r from-deep-teal/10 to-soft-mint/10 rounded-lg p-6 border border-deep-teal/20">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <h1 className="text-3xl font-bold text-deep-teal">
+        <div className="p-6 md:p-8">
+          <div className="max-w-7xl mx-auto space-y-6">
+            {/* Classroom header */}
+            <div className="bg-gradient-to-r from-deep-teal/10 to-soft-mint/10 rounded-xl p-6 border border-deep-teal/20">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <h1 className="text-2xl md:text-3xl font-bold text-deep-teal">
                       {classroom.name}
                     </h1>
                     {classroom.is_active ? (
@@ -293,18 +293,16 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                     )}
                   </div>
                   {classroom.subject && (
-                    <div className="mb-3">
-                      <span className="inline-block px-3 py-1 bg-soft-mint/50 rounded-md text-sm font-medium text-dark-text">
-                        {classroom.subject}
-                      </span>
-                    </div>
+                    <span className="inline-block px-3 py-1 bg-soft-mint/50 rounded-md text-sm font-medium text-dark-text mb-2">
+                      {classroom.subject}
+                    </span>
                   )}
                   {classroom.description && (
-                    <p className="text-slate-blue mb-3 text-base">
+                    <p className="text-slate-blue text-sm md:text-base max-w-2xl">
                       {classroom.description}
                     </p>
                   )}
-                  <div className="flex items-center gap-4 text-sm text-slate-blue">
+                  <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-slate-blue">
                     <span className="flex items-center gap-1">
                       <BookOpen className="h-4 w-4" />
                       {lessons?.length || 0} Lessons
@@ -318,26 +316,25 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                       {exams?.length || 0} Exams
                     </span>
                     <span className="flex items-center gap-1">
-                      <FileText className="h-4 w-4" />
+                      <File className="h-4 w-4" />
                       {materials?.length || 0} Materials
                     </span>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Classroom Statistics Card */}
-          <Card className="border-0 shadow-md mb-6">
-            <CardHeader>
-              <CardTitle className="text-deep-teal flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
-                Classroom Statistics
-              </CardTitle>
-              <CardDescription>
-                Overview of your classroom performance
-              </CardDescription>
-            </CardHeader>
+            {/* Classroom Statistics */}
+            <Card className="border-0 shadow-md">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-deep-teal text-lg flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Classroom Statistics
+                </CardTitle>
+                <CardDescription>
+                  Overview of your classroom performance
+                </CardDescription>
+              </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-4 bg-light-sky rounded-lg">
@@ -371,31 +368,31 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Main Content Grid - Reorganized Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Content Management (2/3 width) */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card className="border-0 shadow-md">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-deep-teal flex items-center gap-2">
-                      <BookOpen className="h-5 w-5" />
-                      Lessons
-                    </CardTitle>
-                    <AddLessonDialog classroomId={classroom.id} />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {lessons && lessons.length > 0 ? (
-                    <div className="space-y-3">
-                      {lessons.map((lesson, index) => (
-                        <div
-                          key={lesson.id}
-                          className="p-4 border border-input rounded-md hover:bg-light-sky transition-colors"
-                        >
+            {/* Main content: 2 columns on large screens */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <Card className="border-0 shadow-md">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-deep-teal flex items-center gap-2 text-lg">
+                        <BookOpen className="h-5 w-5" />
+                        Lessons
+                      </CardTitle>
+                      <AddLessonDialog classroomId={classroom.id} />
+                    </div>
+                    <CardDescription>Video lectures and lesson content</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {lessons && lessons.length > 0 ? (
+                      <div className="space-y-3">
+                        {lessons.map((lesson, index) => (
+                          <div
+                            key={lesson.id}
+                            className="p-4 border border-input rounded-lg hover:bg-light-sky/50 transition-colors"
+                          >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <h3 className="font-medium text-deep-teal">
@@ -434,23 +431,23 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-blue text-center py-4">
+                    <p className="text-sm text-slate-blue text-center py-8">
                       No lessons yet. Add your first lesson to get started.
                     </p>
                   )}
                 </CardContent>
               </Card>
 
-              {/* Quizzes Section */}
               <Card className="border-0 shadow-md">
-                <CardHeader>
+                <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-deep-teal flex items-center gap-2">
+                    <CardTitle className="text-deep-teal flex items-center gap-2 text-lg">
                       <FileText className="h-5 w-5" />
-                      Quizzes (Assignments)
+                      Quizzes
                     </CardTitle>
                     <AddQuizWithQuestionsDialog classroomId={classroom.id} />
                   </div>
+                  <CardDescription>Assignments and practice quizzes</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {quizzes && quizzes.length > 0 ? (
@@ -458,7 +455,7 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                       {quizzes.map((quiz) => (
                         <div
                           key={quiz.id}
-                          className="p-4 border border-input rounded-md hover:bg-light-sky transition-colors"
+                          className="p-4 border border-input rounded-lg hover:bg-light-sky/50 transition-colors"
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -503,23 +500,23 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-blue text-center py-4">
+                    <p className="text-sm text-slate-blue text-center py-8">
                       No quizzes yet. Add your first quiz to get started.
                     </p>
                   )}
                 </CardContent>
               </Card>
 
-              {/* Exams Section */}
               <Card className="border-0 shadow-md">
-                <CardHeader>
+                <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-deep-teal flex items-center gap-2">
+                    <CardTitle className="text-deep-teal flex items-center gap-2 text-lg">
                       <GraduationCap className="h-5 w-5" />
                       Exams
                     </CardTitle>
                     <AddExamWithQuestionsDialog classroomId={classroom.id} />
                   </div>
+                  <CardDescription>Timed exams (one attempt)</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {exams && exams.length > 0 ? (
@@ -527,7 +524,7 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                       {exams.map((exam) => (
                         <div
                           key={exam.id}
-                          className="p-4 border border-input rounded-md hover:bg-light-sky transition-colors"
+                          className="p-4 border border-input rounded-lg hover:bg-light-sky/50 transition-colors"
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -573,23 +570,23 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-blue text-center py-4">
+                    <p className="text-sm text-slate-blue text-center py-8">
                       No exams yet. Add your first exam to get started.
                     </p>
                   )}
                 </CardContent>
               </Card>
 
-              {/* Course Materials Section */}
               <Card className="border-0 shadow-md">
-                <CardHeader>
+                <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-deep-teal flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
+                    <CardTitle className="text-deep-teal flex items-center gap-2 text-lg">
+                      <File className="h-5 w-5" />
                       Course Materials
                     </CardTitle>
                     <AddCourseMaterialDialog classroomId={classroom.id} />
                   </div>
+                  <CardDescription>Files and resources for students</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {materials && materials.length > 0 ? (
@@ -597,7 +594,7 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                       {materials.map((material: any) => (
                         <div
                           key={material.id}
-                          className="p-4 border border-input rounded-md hover:bg-light-sky transition-colors"
+                          className="p-4 border border-input rounded-lg hover:bg-light-sky/50 transition-colors"
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -634,7 +631,7 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-blue text-center py-4">
+                    <p className="text-sm text-slate-blue text-center py-8">
                       No course materials yet. Add your first material to get started.
                     </p>
                   )}
@@ -642,13 +639,11 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
               </Card>
             </div>
 
-              {/* Right Sidebar */}
+            {/* Right sidebar */}
             <div className="space-y-6">
-
-              {/* Content Overview Card */}
               <Card className="border-0 shadow-md">
-                <CardHeader>
-                  <CardTitle className="text-deep-teal">Content Overview</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-deep-teal text-lg">Content Overview</CardTitle>
                   <CardDescription>
                     Your classroom content statistics
                   </CardDescription>
@@ -687,10 +682,9 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                 </CardContent>
               </Card>
 
-              {/* Classroom Actions Card */}
               <Card className="border-0 shadow-md">
-                <CardHeader>
-                  <CardTitle className="text-deep-teal">Classroom Actions</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-deep-teal text-lg">Classroom Actions</CardTitle>
                   <CardDescription>
                     Manage your classroom settings
                   </CardDescription>
@@ -714,18 +708,18 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
             </div>
           </div>
 
-          {/* Individual Student Progress Card - Full Width Below */}
-          <Card className="border-0 shadow-md mt-6">
-            <CardHeader className="p-4 pb-3">
-              <CardTitle className="text-lg text-deep-teal flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Individual Student Progress
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Detailed progress breakdown for students in this classroom
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
+            {/* Student progress (full width) */}
+            <Card className="border-0 shadow-md">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-deep-teal text-lg flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Student Progress
+                </CardTitle>
+                <CardDescription>
+                  Progress and ranking for enrolled students
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
               {studentProgressList.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {studentProgressList.map((student, index) => (
@@ -821,9 +815,9 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                   <p>No students enrolled in this classroom yet</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     )

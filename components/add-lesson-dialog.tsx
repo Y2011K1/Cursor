@@ -17,15 +17,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Plus, Loader2, Upload, Video, Link as LinkIcon } from "lucide-react"
+import { Plus, Loader2, Upload, Video } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { uploadVideo } from "@/app/actions/video"
 
 const lessonSchema = z.object({
   title: z.string().min(2, "Lesson title must be at least 2 characters"),
   content: z.string().optional(),
-  video_url: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
-  video_provider: z.enum(["bunny.net", "youtube", "vimeo", "other"]).optional(),
 })
 
 type LessonFormData = z.infer<typeof lessonSchema>
@@ -39,7 +37,6 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [uploadMethod, setUploadMethod] = useState<"url" | "upload">("url")
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null)
@@ -52,28 +49,15 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
     handleSubmit,
     formState: { errors },
     reset,
-    watch,
-    setValue,
   } = useForm<LessonFormData>({
     resolver: zodResolver(lessonSchema),
   })
-
-  const videoUrl = watch("video_url")
-
-  // Auto-detect video provider from URL
-  const detectVideoProvider = (url: string): "bunny.net" | "youtube" | "vimeo" | "other" | undefined => {
-    if (!url) return undefined
-    if (url.includes("bunny.net") || url.includes("b-cdn.net")) return "bunny.net"
-    if (url.includes("youtube.com") || url.includes("youtu.be")) return "youtube"
-    if (url.includes("vimeo.com")) return "vimeo"
-    return "other"
-  }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       if (!file.type.startsWith("video/")) {
-        setError("Please select a video file")
+        setError("Please select a video file (e.g. MP4, WebM)")
         return
       }
       if (file.size > 500 * 1024 * 1024) {
@@ -86,10 +70,7 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
   }
 
   const handleVideoUpload = async (title: string) => {
-    if (!selectedVideoFile) {
-      setError("Please select a video file")
-      return null
-    }
+    if (!selectedVideoFile) return null
 
     setIsUploading(true)
     setUploadProgress(0)
@@ -99,7 +80,6 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
       formData.append("video", selectedVideoFile)
       formData.append("title", title)
 
-      // Simulate progress (in real implementation, you'd track actual upload progress)
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
           if (prev >= 90) {
@@ -122,9 +102,9 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
       }
 
       setIsUploading(false)
-      return result.videoUrl
-    } catch (err: any) {
-      setError(err.message || "Failed to upload video")
+      return result.videoUrl ?? null
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to upload video")
       setIsUploading(false)
       return null
     }
@@ -136,22 +116,16 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
     setSuccess(false)
 
     try {
-      let finalVideoUrl = data.video_url || null
-      let videoProvider: "bunny.net" | "youtube" | "vimeo" | "other" | null = null
+      let finalVideoUrl: string | null = null
 
-      // If uploading a file, upload it first
-      if (uploadMethod === "upload" && selectedVideoFile) {
-        finalVideoUrl = await handleVideoUpload(data.title) || null
+      if (selectedVideoFile) {
+        finalVideoUrl = await handleVideoUpload(data.title) ?? null
         if (!finalVideoUrl) {
           setIsSubmitting(false)
           return
         }
-        videoProvider = "bunny.net"
-      } else if (data.video_url) {
-        videoProvider = detectVideoProvider(data.video_url) || null
       }
 
-      // Get current max order_index for this classroom
       const { data: lessons } = await supabase
         .from("lessons")
         .select("order_index")
@@ -160,7 +134,7 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
         .limit(1)
 
       const nextOrderIndex = lessons && lessons.length > 0
-        ? (lessons[0].order_index || 0) + 1
+        ? (lessons[0].order_index ?? 0) + 1
         : 0
 
       const { error: insertError } = await supabase
@@ -170,7 +144,7 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
           title: data.title,
           content: data.content || null,
           video_url: finalVideoUrl,
-          video_provider: videoProvider,
+          video_provider: finalVideoUrl ? "bunny.net" : null,
           order_index: nextOrderIndex,
           is_published: false,
         })
@@ -184,35 +158,42 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
       setSuccess(true)
       reset()
       setSelectedVideoFile(null)
-      setUploadMethod("url")
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""
-      }
+      if (fileInputRef.current) fileInputRef.current.value = ""
       setTimeout(() => {
         setOpen(false)
         setSuccess(false)
         router.refresh()
       }, 1000)
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred")
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred")
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      reset()
+      setError(null)
+      setSelectedVideoFile(null)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+    }
+    setOpen(open)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-soft-mint hover:bg-soft-mint/80 text-dark-text">
+        <Button size="sm" className="bg-deep-teal hover:bg-deep-teal/90 text-white">
           <Plus className="h-4 w-4 mr-2" />
           Add Lesson
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-deep-teal">Add New Lesson</DialogTitle>
           <DialogDescription>
-            Create a new lesson for this course
+            Add a lesson with optional video (upload only). Video is stored and streamed via Bunny.net.
           </DialogDescription>
         </DialogHeader>
 
@@ -225,7 +206,7 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
 
           {success && (
             <div className="p-3 rounded-md bg-success-green/20 border border-success-green text-success-green text-sm">
-              Lesson created successfully!
+              Lesson created successfully.
             </div>
           )}
 
@@ -233,7 +214,7 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
             <Label htmlFor="title">Lesson Title *</Label>
             <Input
               id="title"
-              placeholder="Introduction to Algebra"
+              placeholder="e.g. Introduction to Algebra"
               {...register("title")}
             />
             {errors.title && (
@@ -242,124 +223,62 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content">Content (Optional)</Label>
+            <Label htmlFor="content">Content (optional)</Label>
             <Textarea
               id="content"
-              rows={6}
-              placeholder="Lesson content, notes, or instructions..."
+              rows={4}
+              placeholder="Notes or instructions..."
               {...register("content")}
             />
-            {errors.content && (
-              <p className="text-sm text-warm-coral">{errors.content.message}</p>
-            )}
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <Label>Video (Optional)</Label>
-              <div className="flex gap-2 mt-2">
-                <Button
-                  type="button"
-                  variant={uploadMethod === "url" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setUploadMethod("url")}
-                  className="flex-1"
-                >
-                  <LinkIcon className="h-4 w-4 mr-2" />
-                  Use URL
-                </Button>
-                <Button
-                  type="button"
-                  variant={uploadMethod === "upload" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setUploadMethod("upload")}
-                  className="flex-1"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Video
-                </Button>
-              </div>
+          <div className="space-y-2">
+            <Label>Video (optional)</Label>
+            <div className="border-2 border-dashed border-slate-blue/30 rounded-lg p-5 text-center bg-light-sky/50">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="video/*"
+                onChange={handleFileSelect}
+                className="hidden"
+                id="video-file-input"
+              />
+              <label
+                htmlFor="video-file-input"
+                className="cursor-pointer flex flex-col items-center gap-2"
+              >
+                <Video className="h-8 w-8 text-slate-blue" />
+                <span className="text-sm text-slate-blue">
+                  {selectedVideoFile
+                    ? selectedVideoFile.name
+                    : "Click to select video file"}
+                </span>
+                <span className="text-xs text-slate-blue/70">Max 500MB (MP4, WebM, etc.)</span>
+              </label>
             </div>
-
-            {uploadMethod === "url" ? (
+            {selectedVideoFile && (
+              <p className="text-xs text-slate-blue">
+                Selected: {selectedVideoFile.name} ({(selectedVideoFile.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
+            )}
+            {isUploading && (
               <div className="space-y-2">
-                <Input
-                  id="video_url"
-                  type="url"
-                  placeholder="https://vz-xxx.b-cdn.net/video.mp4 or YouTube/Vimeo URL"
-                  {...register("video_url")}
-                />
-                {errors.video_url && (
-                  <p className="text-sm text-warm-coral">{errors.video_url.message}</p>
-                )}
-                {videoUrl && (
-                  <p className="text-xs text-slate-blue">
-                    Provider: {detectVideoProvider(videoUrl) || "Unknown"}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="border-2 border-dashed border-slate-blue/30 rounded-lg p-6 text-center">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="video/*"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                    id="video-file-input"
+                <div className="w-full bg-slate-blue/20 rounded-full h-2">
+                  <div
+                    className="bg-deep-teal h-2 rounded-full transition-all"
+                    style={{ width: `${uploadProgress}%` }}
                   />
-                  <label
-                    htmlFor="video-file-input"
-                    className="cursor-pointer flex flex-col items-center gap-2"
-                  >
-                    <Video className="h-8 w-8 text-slate-blue" />
-                    <span className="text-sm text-slate-blue">
-                      {selectedVideoFile
-                        ? selectedVideoFile.name
-                        : "Click to select video file"}
-                    </span>
-                    <span className="text-xs text-slate-blue/70">
-                      Max size: 500MB
-                    </span>
-                  </label>
                 </div>
-                {selectedVideoFile && (
-                  <div className="text-xs text-slate-blue">
-                    Selected: {selectedVideoFile.name} ({(selectedVideoFile.size / 1024 / 1024).toFixed(2)} MB)
-                  </div>
-                )}
-                {isUploading && (
-                  <div className="space-y-2">
-                    <div className="w-full bg-slate-blue/20 rounded-full h-2">
-                      <div
-                        className="bg-deep-teal h-2 rounded-full transition-all"
-                        style={{ width: `${uploadProgress}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-slate-blue text-center">
-                      Uploading... {uploadProgress}%
-                    </p>
-                  </div>
-                )}
+                <p className="text-xs text-slate-blue text-center">Uploading… {uploadProgress}%</p>
               </div>
             )}
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
-                setOpen(false)
-                reset()
-                setError(null)
-                setSelectedVideoFile(null)
-                setUploadMethod("url")
-                if (fileInputRef.current) {
-                  fileInputRef.current.value = ""
-                }
-              }}
+              onClick={() => handleOpenChange(false)}
               disabled={isSubmitting || isUploading}
             >
               Cancel
@@ -372,7 +291,7 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
               {isSubmitting || isUploading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {isUploading ? "Uploading..." : "Creating..."}
+                  {isUploading ? "Uploading…" : "Creating…"}
                 </>
               ) : (
                 "Create Lesson"
