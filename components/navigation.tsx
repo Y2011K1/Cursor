@@ -5,7 +5,8 @@ import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { GraduationCap, LogOut, User } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useMemo, useCallback, useTransition } from "react"
+import { MobileNav } from "@/components/mobile-nav"
 
 interface NavigationProps {
   userRole?: "admin" | "teacher" | "student"
@@ -14,22 +15,24 @@ interface NavigationProps {
 
 export function Navigation({ userRole, userName }: NavigationProps) {
   const router = useRouter()
-  const supabase = createClient()
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  
+  // Memoize client creation
+  const supabase = useMemo(() => createClient(), [])
 
-  const handleLogout = async () => {
-    setIsLoggingOut(true)
-    try {
-      await supabase.auth.signOut()
-      // Show loading briefly before redirect
-      await new Promise(resolve => setTimeout(resolve, 300))
-      router.push("/login")
-      router.refresh()
-    } catch (error) {
-      console.error("Error logging out:", error)
-      setIsLoggingOut(false)
-    }
-  }
+  const handleLogout = useCallback(async () => {
+    startTransition(async () => {
+      try {
+        await supabase.auth.signOut()
+        // Show loading briefly before redirect
+        await new Promise(resolve => setTimeout(resolve, 300))
+        router.push("/login")
+        router.refresh()
+      } catch (error) {
+        console.error("Error logging out:", error)
+      }
+    })
+  }, [supabase, router])
 
   const getDashboardLink = () => {
     switch (userRole) {
@@ -67,10 +70,13 @@ export function Navigation({ userRole, userName }: NavigationProps) {
   }
 
   return (
-    <nav className="bg-white border-b border-input shadow-sm">
+    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-input shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-4">
+            <div className="lg:hidden">
+              <MobileNav userRole={userRole} userName={userName} />
+            </div>
             {getRoleBadge()}
             <Link href={getDashboardLink()} className="flex items-center gap-2">
               <div className="rounded-full bg-deep-teal p-2">
@@ -80,7 +86,7 @@ export function Navigation({ userRole, userName }: NavigationProps) {
             </Link>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-4">
             {userName && (
               <div className="flex items-center gap-2 text-slate-blue">
                 <User className="h-4 w-4" />
@@ -100,11 +106,11 @@ export function Navigation({ userRole, userName }: NavigationProps) {
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              disabled={isLoggingOut}
+              disabled={isPending}
               className="text-slate-blue hover:text-deep-teal"
             >
               <LogOut className="h-4 w-4 mr-2" />
-              {isLoggingOut ? "Logging out..." : "Logout"}
+              {isPending ? "Logging out..." : "Logout"}
             </Button>
           </div>
         </div>

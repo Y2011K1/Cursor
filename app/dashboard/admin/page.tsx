@@ -8,7 +8,12 @@ import { Navigation } from "@/components/navigation"
 import Link from "next/link"
 import { unstable_noStore as noStore } from "next/cache"
 import { calculateRank, calculateTotalPoints } from "@/lib/ranking"
-import { ProgressBarDialog } from "@/components/progress-bar-dialog"
+import nextDynamic from "next/dynamic"
+
+// Lazy load ProgressBarDialog
+const ProgressBarDialog = nextDynamic(() => import("@/components/progress-bar-dialog").then(mod => ({ default: mod.ProgressBarDialog })), {
+  loading: () => null,
+})
 
 // Force dynamic rendering to always fetch fresh data
 export const dynamic = 'force-dynamic'

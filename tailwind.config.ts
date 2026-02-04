@@ -18,6 +18,9 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -54,7 +57,8 @@ const config = {
         },
         // Custom brand colors
         "deep-teal": "#2E5266",
-        "slate-blue": "#6E8898",
+        "slate-blue": "#556B7B", // Darker for better contrast (WCAG AA)
+        "slate-blue-light": "#6E8898", // Original for non-text use
         "soft-mint": "#9FC5D4",
         "light-sky": "#E8F4F8",
         "warm-coral": "#E07A5F",

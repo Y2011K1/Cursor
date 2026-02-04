@@ -12,41 +12,34 @@ export default async function TeachersPage() {
   const profile = await requireRole("admin")
   const supabase = await createClient()
 
-  // Get all teachers with their classrooms
-  // Note: We'll need to join with auth.users to get email, but for now we'll use profiles
-  const { data: teachers } = await supabase
-    .from("profiles")
-    .select(`
-      *,
-      classroom:classrooms (
-        id,
-        name,
-        max_students
-      )
-    `)
-    .eq("role", "teacher")
-    .order("created_at", { ascending: false })
-
-  // Get emails from auth.users (requires service role, so we'll handle this differently)
-  // For now, we'll show the user ID as a placeholder
-
-  // Get student counts for each classroom (optimized)
-  const classroomIds = teachers
-    ?.map((t: any) => t.classroom?.id)
-    .filter(Boolean) || []
-
-  let countsMap = new Map<string, number>()
-  if (classroomIds.length > 0) {
-    const { data: enrollmentCounts } = await supabase
+  // Get all teachers with their classrooms in parallel with enrollment counts
+  const [teachersResult, enrollmentsResult] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select(`
+        *,
+        classroom:classrooms (
+          id,
+          name,
+          max_students
+        )
+      `)
+      .eq("role", "teacher")
+      .order("created_at", { ascending: false }),
+    supabase
       .from("enrollments")
       .select("classroom_id")
-      .in("classroom_id", classroomIds)
       .eq("is_active", true)
+  ])
 
-    enrollmentCounts?.forEach((e) => {
-      countsMap.set(e.classroom_id, (countsMap.get(e.classroom_id) || 0) + 1)
-    })
-  }
+  const teachers = teachersResult.data || []
+  const enrollmentCounts = enrollmentsResult.data || []
+
+  // Build counts map from enrollments
+  const countsMap = new Map<string, number>()
+  enrollmentCounts.forEach((e) => {
+    countsMap.set(e.classroom_id, (countsMap.get(e.classroom_id) || 0) + 1)
+  })
 
   return (
     <div className="min-h-screen bg-light-sky">

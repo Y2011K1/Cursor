@@ -2,7 +2,7 @@
 
 import { ErrorBoundary } from "@/components/error-boundary"
 
-export default function DashboardError({
+export default function AdminDashboardError({
   error,
   reset,
 }: {

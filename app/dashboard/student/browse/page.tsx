@@ -7,6 +7,9 @@ import { Users, GraduationCap, BookOpen } from "lucide-react"
 import { Navigation } from "@/components/navigation"
 import { EnrollButton } from "@/components/enroll-button"
 
+// Browse page can be cached for 60 seconds
+export const revalidate = 60
+
 export default async function BrowseClassroomsPage() {
   const profile = await requireRole("student")
   const supabase = await createClient()

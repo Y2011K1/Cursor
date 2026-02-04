@@ -7,7 +7,12 @@ import { Navigation } from "@/components/navigation"
 import { ArrowLeft, PlayCircle, CheckCircle2, Clock } from "lucide-react"
 import Link from "next/link"
 import { MarkCompleteButton } from "@/components/mark-complete-button"
-import { VideoPlayer } from "@/components/video-player"
+import nextDynamic from "next/dynamic"
+
+// Lazy load VideoPlayer - heavy component with video handling (no ssr:false in Server Components)
+const VideoPlayer = nextDynamic(() => import("@/components/video-player").then(mod => ({ default: mod.VideoPlayer })), {
+  loading: () => <div className="animate-pulse bg-gray-200 w-full h-full rounded flex items-center justify-center"><span className="text-gray-400">Loading video player...</span></div>,
+})
 
 interface LessonPageProps {
   params: Promise<{ courseId: string; lessonId: string }>

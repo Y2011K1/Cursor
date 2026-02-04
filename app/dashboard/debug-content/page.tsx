@@ -1,13 +1,11 @@
 import { requireRole } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { unstable_noStore as noStore } from "next/cache"
 
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+// Debug page can be cached for 30 seconds
+export const revalidate = 30
 
 export default async function DebugContentPage() {
-  noStore()
   // Allow any authenticated user to access debug page
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

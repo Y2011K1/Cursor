@@ -6,15 +6,11 @@ import { Navigation } from "@/components/navigation"
 import { BookOpen, FileText, GraduationCap, Plus, Eye, EyeOff, File, User, CheckCircle2, Award, Trophy, BarChart3, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
-import { AddLessonDialog } from "@/components/add-lesson-dialog"
 import { PublishClassroomButton } from "@/components/publish-classroom-button"
-import { AddQuizWithQuestionsDialog } from "@/components/add-quiz-with-questions-dialog"
-import { AddExamWithQuestionsDialog } from "@/components/add-exam-with-questions-dialog"
 import { EditClassroomDialog } from "@/components/edit-classroom-dialog"
 import { EditLessonButton } from "@/components/edit-lesson-button"
 import { DeleteQuizButton } from "@/components/delete-quiz-button"
 import { DeleteExamButton } from "@/components/delete-exam-button"
-import { AddCourseMaterialDialog } from "@/components/add-course-material-dialog"
 import { PublishMaterialButton } from "@/components/publish-material-button"
 import { DeleteMaterialButton } from "@/components/delete-material-button"
 import { PublishLessonButton } from "@/components/publish-lesson-button"
@@ -23,8 +19,29 @@ import { PublishQuizButtonInline } from "@/components/publish-quiz-button-inline
 import { PublishExamButton } from "@/components/publish-exam-button"
 import { unstable_noStore as noStore } from "next/cache"
 import { calculateRank, calculateTotalPoints } from "@/lib/ranking"
-import { ProgressBarDialog } from "@/components/progress-bar-dialog"
 import { LessonVideoStatusBadge } from "@/components/lesson-video-status-badge"
+import nextDynamic from "next/dynamic"
+
+// Lazy load heavy dialog components
+const AddLessonDialog = nextDynamic(() => import("@/components/add-lesson-dialog").then(mod => ({ default: mod.AddLessonDialog })), {
+  loading: () => null, // Dialogs can render nothing while loading
+})
+
+const AddQuizWithQuestionsDialog = nextDynamic(() => import("@/components/add-quiz-with-questions-dialog").then(mod => ({ default: mod.AddQuizWithQuestionsDialog })), {
+  loading: () => null,
+})
+
+const AddExamWithQuestionsDialog = nextDynamic(() => import("@/components/add-exam-with-questions-dialog").then(mod => ({ default: mod.AddExamWithQuestionsDialog })), {
+  loading: () => null,
+})
+
+const AddCourseMaterialDialog = nextDynamic(() => import("@/components/add-course-material-dialog").then(mod => ({ default: mod.AddCourseMaterialDialog })), {
+  loading: () => null,
+})
+
+const ProgressBarDialog = nextDynamic(() => import("@/components/progress-bar-dialog").then(mod => ({ default: mod.ProgressBarDialog })), {
+  loading: () => null,
+})
 
 // Force dynamic rendering to always fetch fresh data
 export const dynamic = 'force-dynamic'
