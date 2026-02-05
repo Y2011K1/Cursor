@@ -286,41 +286,41 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
       : 0
 
     return (
-      <div className="min-h-screen bg-light-sky">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
         <Navigation userRole="teacher" userName={profile.full_name} />
         <div className="p-6 md:p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* Classroom header */}
-            <div className="bg-gradient-to-r from-deep-teal/10 to-soft-mint/10 rounded-xl p-6 border border-deep-teal/20">
+            <div className="bg-gradient-to-r from-deep-teal via-soft-mint to-deep-teal rounded-2xl p-6 md:p-8 text-white shadow-lg">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-2xl md:text-3xl font-bold text-deep-teal">
+                    <h1 className="text-2xl md:text-3xl font-bold text-white">
                       {classroom.name}
                     </h1>
                     {classroom.is_active ? (
-                      <span className="text-xs px-3 py-1 rounded-full bg-success-green/20 text-success-green flex items-center gap-1 font-medium">
+                      <span className="text-xs px-3 py-1 rounded-full bg-white/20 text-white flex items-center gap-1 font-medium">
                         <Eye className="h-3 w-3" />
                         Active
                       </span>
                     ) : (
-                      <span className="text-xs px-3 py-1 rounded-full bg-slate-blue/20 text-slate-blue flex items-center gap-1 font-medium">
+                      <span className="text-xs px-3 py-1 rounded-full bg-white/10 text-white/80 flex items-center gap-1 font-medium">
                         <EyeOff className="h-3 w-3" />
                         Inactive
                       </span>
                     )}
                   </div>
                   {classroom.subject && (
-                    <span className="inline-block px-3 py-1 bg-soft-mint/50 rounded-md text-sm font-medium text-dark-text mb-2">
+                    <span className="inline-block px-3 py-1 bg-white/20 rounded-xl text-sm font-medium text-white mb-2">
                       {classroom.subject}
                     </span>
                   )}
                   {classroom.description && (
-                    <p className="text-slate-blue text-sm md:text-base max-w-2xl">
+                    <p className="text-white/90 text-sm md:text-base max-w-2xl">
                       {classroom.description}
                     </p>
                   )}
-                  <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-slate-blue">
+                  <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-white/90">
                     <span className="flex items-center gap-1">
                       <BookOpen className="h-4 w-4" />
                       {lessons?.length || 0} Lessons
@@ -343,43 +343,43 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
             </div>
 
             {/* Classroom Statistics */}
-            <Card className="border-0 shadow-md">
+            <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl bg-gradient-to-br from-white to-blue-50/50">
               <CardHeader className="pb-3">
-                <CardTitle className="text-deep-teal text-lg flex items-center gap-2">
+                <CardTitle className="text-xl font-bold text-deep-teal flex items-center gap-2">
                   <BarChart3 className="h-5 w-5" />
                   Classroom Statistics
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm text-slate-600">
                   Overview of your classroom performance
                 </CardDescription>
               </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-4 bg-light-sky rounded-lg">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="p-4 bg-gradient-to-br from-light-sky to-white rounded-xl">
                   <div className="flex items-center gap-2 mb-2">
                     <User className="h-4 w-4 text-deep-teal" />
-                    <span className="text-sm text-slate-blue">Enrolled Students</span>
+                    <span className="text-sm font-medium text-slate-600">Enrolled Students</span>
                   </div>
                   <div className="text-2xl font-bold text-deep-teal">{enrolledStudents}</div>
                 </div>
-                <div className="p-4 bg-light-sky rounded-lg">
+                <div className="p-4 bg-gradient-to-br from-light-sky to-white rounded-xl">
                   <div className="flex items-center gap-2 mb-2">
                     <TrendingUp className="h-4 w-4 text-deep-teal" />
-                    <span className="text-sm text-slate-blue">Avg Progress</span>
+                    <span className="text-sm font-medium text-slate-600">Avg Progress</span>
                   </div>
                   <div className="text-2xl font-bold text-deep-teal">{avgStudentProgress}%</div>
                 </div>
-                <div className="p-4 bg-light-sky rounded-lg">
+                <div className="p-4 bg-gradient-to-br from-light-sky to-white rounded-xl">
                   <div className="flex items-center gap-2 mb-2">
                     <Award className="h-4 w-4 text-deep-teal" />
-                    <span className="text-sm text-slate-blue">Avg Score</span>
+                    <span className="text-sm font-medium text-slate-600">Avg Score</span>
                   </div>
                   <div className="text-2xl font-bold text-deep-teal">{avgStudentScore > 0 ? `${avgStudentScore}%` : 'N/A'}</div>
                 </div>
-                <div className="p-4 bg-light-sky rounded-lg">
+                <div className="p-4 bg-gradient-to-br from-light-sky to-white rounded-xl">
                   <div className="flex items-center gap-2 mb-2">
                     <Trophy className="h-4 w-4 text-deep-teal" />
-                    <span className="text-sm text-slate-blue">Top Rank</span>
+                    <span className="text-sm font-medium text-slate-600">Top Rank</span>
                   </div>
                   <div className="text-2xl font-bold text-deep-teal">
                     {studentProgressList.length > 0 ? studentProgressList[0].rank.icon : '—'}
@@ -392,16 +392,16 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
             {/* Main content: 2 columns on large screens */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
-                <Card className="border-0 shadow-md">
+                <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl bg-gradient-to-br from-white to-blue-50/50">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-deep-teal flex items-center gap-2 text-lg">
+                      <CardTitle className="text-xl font-bold text-deep-teal flex items-center gap-2">
                         <BookOpen className="h-5 w-5" />
                         Lessons
                       </CardTitle>
                       <AddLessonDialog classroomId={classroom.id} />
                     </div>
-                    <CardDescription>Video lectures and lesson content</CardDescription>
+                    <CardDescription className="text-sm text-slate-600">Video lectures and lesson content</CardDescription>
                   </CardHeader>
                   <CardContent>
                     {lessons && lessons.length > 0 ? (
@@ -409,19 +409,19 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                         {lessons.map((lesson, index) => (
                           <div
                             key={lesson.id}
-                            className="p-4 border border-input rounded-lg hover:bg-light-sky/50 transition-colors"
+                            className="p-4 border-none bg-gradient-to-br from-light-sky/50 to-white rounded-xl hover:shadow-sm transition-shadow duration-300"
                           >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <h3 className="font-medium text-deep-teal">
+                              <h3 className="font-semibold text-deep-teal">
                                 {index + 1}. {lesson.title}
                               </h3>
                               {lesson.content && (
-                                <p className="text-sm text-slate-blue mt-1 line-clamp-2">
+                                <p className="text-sm text-slate-600 mt-1 line-clamp-2">
                                   {lesson.content}
                                 </p>
                               )}
-                              <div className="flex items-center gap-2 flex-wrap mt-2 text-xs text-slate-blue">
+                              <div className="flex items-center gap-2 flex-wrap mt-2 text-xs text-slate-600">
                                 {lesson.video_url && (
                                   <>
                                     <span>📹 Video</span>
@@ -460,16 +460,16 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-md">
+              <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl bg-gradient-to-br from-white to-blue-50/50">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-deep-teal flex items-center gap-2 text-lg">
+                    <CardTitle className="text-xl font-bold text-deep-teal flex items-center gap-2">
                       <FileText className="h-5 w-5" />
                       Quizzes
                     </CardTitle>
                     <AddQuizWithQuestionsDialog classroomId={classroom.id} />
                   </div>
-                  <CardDescription>Assignments and practice quizzes</CardDescription>
+                  <CardDescription className="text-sm text-slate-600">Assignments and practice quizzes</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {quizzes && quizzes.length > 0 ? (
@@ -477,7 +477,7 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                       {quizzes.map((quiz) => (
                         <div
                           key={quiz.id}
-                          className="p-4 border border-input rounded-lg hover:bg-light-sky/50 transition-colors"
+                          className="p-4 border-none bg-gradient-to-br from-light-sky/50 to-white rounded-xl hover:shadow-sm transition-shadow duration-300"
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -506,7 +506,7 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                                 quizId={quiz.id}
                                 isPublished={quiz.is_published}
                               />
-                              <Button variant="ghost" size="sm" asChild>
+                              <Button variant="ghost" size="sm" className="rounded-xl h-11 shadow-sm hover:shadow transition-all duration-300 font-medium" asChild>
                                 <Link href={`/dashboard/teacher/classroom/${classroom.id}/quiz/${quiz.id}`}>
                                   Edit
                                 </Link>
@@ -529,16 +529,16 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-md">
+              <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl bg-gradient-to-br from-white to-blue-50/50">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-deep-teal flex items-center gap-2 text-lg">
+                    <CardTitle className="text-xl font-bold text-deep-teal flex items-center gap-2">
                       <GraduationCap className="h-5 w-5" />
                       Exams
                     </CardTitle>
                     <AddExamWithQuestionsDialog classroomId={classroom.id} />
                   </div>
-                  <CardDescription>Timed exams (one attempt)</CardDescription>
+                  <CardDescription className="text-sm text-slate-600">Timed exams (one attempt)</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {exams && exams.length > 0 ? (
@@ -546,7 +546,7 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                       {exams.map((exam) => (
                         <div
                           key={exam.id}
-                          className="p-4 border border-input rounded-lg hover:bg-light-sky/50 transition-colors"
+                          className="p-4 border-none bg-gradient-to-br from-light-sky/50 to-white rounded-xl hover:shadow-sm transition-shadow duration-300"
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -576,7 +576,7 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                                 examId={exam.id}
                                 isPublished={exam.is_published}
                               />
-                              <Button variant="ghost" size="sm" asChild>
+                              <Button variant="ghost" size="sm" className="rounded-xl h-11 shadow-sm hover:shadow transition-all duration-300 font-medium" asChild>
                                 <Link href={`/dashboard/teacher/classroom/${classroom.id}/exam/${exam.id}`}>
                                   Edit
                                 </Link>
@@ -599,16 +599,16 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-md">
+              <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl bg-gradient-to-br from-white to-blue-50/50">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-deep-teal flex items-center gap-2 text-lg">
+                    <CardTitle className="text-xl font-bold text-deep-teal flex items-center gap-2">
                       <File className="h-5 w-5" />
                       Course Materials
                     </CardTitle>
                     <AddCourseMaterialDialog classroomId={classroom.id} />
                   </div>
-                  <CardDescription>Files and resources for students</CardDescription>
+                  <CardDescription className="text-sm text-slate-600">Files and resources for students</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {materials && materials.length > 0 ? (
@@ -616,7 +616,7 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                       {materials.map((material: any) => (
                         <div
                           key={material.id}
-                          className="p-4 border border-input rounded-lg hover:bg-light-sky/50 transition-colors"
+                          className="p-4 border-none bg-gradient-to-br from-light-sky/50 to-white rounded-xl hover:shadow-sm transition-shadow duration-300"
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -663,40 +663,40 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
 
             {/* Right sidebar */}
             <div className="space-y-6">
-              <Card className="border-0 shadow-md">
+              <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl bg-gradient-to-br from-white to-blue-50/50">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-deep-teal text-lg">Content Overview</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-xl font-bold text-deep-teal">Content Overview</CardTitle>
+                  <CardDescription className="text-sm text-slate-600">
                     Your classroom content statistics
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-light-sky rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-br from-light-sky to-white rounded-xl">
                       <div className="flex items-center gap-2">
                         <BookOpen className="h-4 w-4 text-deep-teal" />
-                        <span className="text-slate-blue">Lessons</span>
+                        <span className="text-sm font-medium text-slate-600">Lessons</span>
                       </div>
                       <span className="font-bold text-lg text-deep-teal">{lessons?.length || 0}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-light-sky rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-br from-light-sky to-white rounded-xl">
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-deep-teal" />
-                        <span className="text-slate-blue">Quizzes</span>
+                        <span className="text-sm font-medium text-slate-600">Quizzes</span>
                       </div>
                       <span className="font-bold text-lg text-deep-teal">{quizzes?.length || 0}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-light-sky rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-br from-light-sky to-white rounded-xl">
                       <div className="flex items-center gap-2">
                         <GraduationCap className="h-4 w-4 text-deep-teal" />
-                        <span className="text-slate-blue">Exams</span>
+                        <span className="text-sm font-medium text-slate-600">Exams</span>
                       </div>
                       <span className="font-bold text-lg text-deep-teal">{exams?.length || 0}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-light-sky rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-br from-light-sky to-white rounded-xl">
                       <div className="flex items-center gap-2">
                         <File className="h-4 w-4 text-deep-teal" />
-                        <span className="text-slate-blue">Course Materials</span>
+                        <span className="text-sm font-medium text-slate-600">Course Materials</span>
                       </div>
                       <span className="font-bold text-lg text-deep-teal">{materials?.length || 0}</span>
                     </div>
@@ -704,10 +704,10 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-md">
+              <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl bg-gradient-to-br from-white to-blue-50/50">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-deep-teal text-lg">Classroom Actions</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-xl font-bold text-deep-teal">Classroom Actions</CardTitle>
+                  <CardDescription className="text-sm text-slate-600">
                     Manage your classroom settings
                   </CardDescription>
                 </CardHeader>
@@ -731,23 +731,23 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
           </div>
 
             {/* Student progress (full width) */}
-            <Card className="border-0 shadow-md">
+            <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl bg-gradient-to-br from-white to-blue-50/50">
               <CardHeader className="pb-3">
-                <CardTitle className="text-deep-teal text-lg flex items-center gap-2">
+                <CardTitle className="text-xl font-bold text-deep-teal flex items-center gap-2">
                   <User className="h-5 w-5" />
                   Student Progress
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm text-slate-600">
                   Progress and ranking for enrolled students
                 </CardDescription>
               </CardHeader>
               <CardContent>
               {studentProgressList.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {studentProgressList.map((student, index) => (
                     <div
                       key={index}
-                      className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-300"
+                      className="p-6 bg-white rounded-xl border-none shadow-sm hover:shadow-md transition-shadow duration-300"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
@@ -802,12 +802,12 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                               <div className="flex items-center gap-3 text-sm text-slate-blue">
                                 <span className="font-medium min-w-[60px]">{student.rank.rank}</span>
                                 <div className="flex-1 relative group">
-                                  <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
+                                  <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
                                     <div
-                                      className="bg-deep-teal h-6 rounded-full transition-all duration-1000 ease-out relative"
+                                      className="bg-gradient-to-r from-deep-teal to-success-green h-3 rounded-full transition-all duration-700 ease-out relative"
                                       style={{ width: `${progressPercent}%` }}
                                     >
-                                      {progressPercent > 10 && (
+                                      {progressPercent > 15 && (
                                         <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
                                           {Math.round(progressPercent)}%
                                         </span>
@@ -821,7 +821,7 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                               </div>
                             </ProgressBarDialog>
                             {pointsNeeded > 0 && (
-                              <div className="text-xs text-slate-blue text-center pt-1">
+                              <div className="text-xs text-slate-600 text-center pt-1">
                                 {pointsNeeded} more {pointsNeeded === 1 ? 'point' : 'points'} to reach {nextRankName}
                               </div>
                             )}
@@ -832,9 +832,9 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-slate-blue">
-                  <User className="h-12 w-12 mx-auto mb-2 text-slate-blue/50" />
-                  <p>No students enrolled in this classroom yet</p>
+                <div className="text-center py-12 text-slate-600">
+                  <User className="h-12 w-12 mx-auto mb-2 text-slate-600/50" />
+                  <p className="text-sm">No students enrolled in this classroom yet</p>
                 </div>
               )}
               </CardContent>

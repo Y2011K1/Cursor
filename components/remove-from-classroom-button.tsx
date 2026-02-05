@@ -3,8 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Trash2, Loader2 } from "lucide-react"
-import { removeStudent } from "@/app/actions/admin"
+import { UserMinus, Loader2 } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -15,34 +14,47 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 
-interface DeleteStudentButtonProps {
+interface RemoveFromClassroomButtonProps {
   studentId: string
   studentName: string
+  classroomId: string
+  classroomName: string
 }
 
-export function DeleteStudentButton({ studentId, studentName }: DeleteStudentButtonProps) {
+export function RemoveFromClassroomButton({
+  studentId,
+  studentName,
+  classroomId,
+  classroomName
+}: RemoveFromClassroomButtonProps) {
   const [open, setOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [isRemoving, setIsRemoving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
-  const handleDelete = async () => {
-    setIsDeleting(true)
+  const handleRemove = async () => {
+    setIsRemoving(true)
     setError(null)
 
     try {
-      const result = await removeStudent(studentId)
+      const response = await fetch('/api/admin/remove-from-classroom', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId, classroomId })
+      })
+
+      const result = await response.json()
 
       if (result.success) {
         setOpen(false)
         router.refresh()
       } else {
-        setError(result.error || "Failed to remove student")
+        setError(result.error || "Failed to remove student from classroom")
       }
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
     } finally {
-      setIsDeleting(false)
+      setIsRemoving(false)
     }
   }
 
@@ -52,61 +64,63 @@ export function DeleteStudentButton({ studentId, studentName }: DeleteStudentBut
         <Button
           variant="outline"
           size="sm"
-          className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+          className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-300"
         >
-          <Trash2 className="h-4 w-4 mr-2" />
-          Delete Account
+          <UserMinus className="h-4 w-4 mr-2" />
+          Remove from Class
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-deep-teal">Remove Student</DialogTitle>
+          <DialogTitle className="text-deep-teal">
+            Remove from Classroom
+          </DialogTitle>
           <DialogDescription>
-            Are you sure you want to <strong className="text-red-600">permanently delete</strong> <strong>{studentName}</strong>'s account?
+            Remove <strong>{studentName}</strong> from <strong>{classroomName}</strong>?
             
             <div className="mt-4 space-y-2 text-sm">
-              <p className="font-semibold text-red-700">⚠️ WARNING: This action cannot be undone!</p>
               <p className="font-semibold text-gray-900">This will:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Delete the student account completely</li>
-                <li>Remove from ALL classrooms</li>
-                <li>Delete all quiz and exam submissions</li>
-                <li>Delete all lesson progress</li>
-                <li>Delete all course material access records</li>
+                <li>Remove the student from this classroom only</li>
+                <li>Keep their account active</li>
+                <li>Preserve their data in other classrooms</li>
               </ul>
-              <p className="text-orange-600 font-medium mt-3">
-                💡 To remove from just one classroom, use "Remove from Class" instead
+              <p className="text-blue-600 font-medium mt-3">
+                ℹ️ The student can re-enroll later if needed
               </p>
             </div>
           </DialogDescription>
         </DialogHeader>
+        
         {error && (
           <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-sm">
             {error}
           </div>
         )}
+        
         <DialogFooter>
           <Button
             variant="outline"
             onClick={() => setOpen(false)}
-            disabled={isDeleting}
+            disabled={isRemoving}
           >
             Cancel
           </Button>
           <Button
-            variant="destructive"
-            onClick={handleDelete}
-            disabled={isDeleting}
+            variant="default"
+            onClick={handleRemove}
+            disabled={isRemoving}
+            className="bg-orange-600 hover:bg-orange-700"
           >
-            {isDeleting ? (
+            {isRemoving ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Removing...
               </>
             ) : (
               <>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Account
+                <UserMinus className="h-4 w-4 mr-2" />
+                Remove from Classroom
               </>
             )}
           </Button>

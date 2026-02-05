@@ -67,12 +67,12 @@ export default async function StudentDashboardPage() {
                 Start your learning journey by joining a classroom
               </p>
             </div>
-            <Card className="border-0 shadow-lg max-w-2xl mx-auto bg-white">
+            <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl max-w-2xl mx-auto bg-gradient-to-br from-white to-blue-50/50">
               <CardContent className="p-8 text-center">
                 <p className="text-slate-blue mb-6">
                   Browse available classrooms and join one to start learning.
                 </p>
-                <Button size="lg" className="bg-deep-teal hover:bg-deep-teal/90 text-white px-8" asChild>
+                <Button size="lg" className="bg-deep-teal hover:bg-deep-teal/90 text-white px-8 rounded-xl h-12 shadow-sm hover:shadow transition-all duration-300 font-medium" asChild>
                   <Link href="/dashboard/student/browse">
                     <Plus className="h-5 w-5 mr-2" />
                     Browse Classrooms
@@ -270,13 +270,17 @@ export default async function StudentDashboardPage() {
   }))
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-light-sky via-white to-light-sky flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex flex-col">
       <Navigation userRole="student" userName={profile.full_name} />
       <div className="p-6 md:p-8 flex-1">
         <div className="max-w-7xl mx-auto space-y-8">
-          {/* Hero Section with Classroom Switcher */}
-          <div className="bg-gradient-to-r from-deep-teal to-soft-mint rounded-2xl p-6 md:p-8 text-white shadow-lg">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          {/* Hero Section */}
+          <div className="bg-gradient-to-r from-deep-teal via-soft-mint/80 to-success-green rounded-3xl p-10 text-white shadow-xl overflow-hidden relative">
+            {/* Background effects */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/10 to-transparent rounded-bl-[100px]"></div>
+            
+            <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex-1">
                 <h1 className="text-3xl md:text-4xl font-bold mb-2">
                   Welcome back, {profile.full_name}!
@@ -290,10 +294,11 @@ export default async function StudentDashboardPage() {
                   </div>
                 )}
               </div>
+              
               <div className="flex flex-col gap-2">
                 <Button 
                   size="lg" 
-                  className="bg-white text-deep-teal hover:bg-white/90 shadow-md" 
+                  className="bg-white text-deep-teal hover:bg-white/90 shadow-sm hover:shadow transition-all duration-300 rounded-xl h-12 font-medium" 
                   asChild
                 >
                   <Link href="/dashboard/student/browse">
@@ -306,9 +311,9 @@ export default async function StudentDashboardPage() {
           </div>
 
           {/* Ranking System Section */}
-          <Card className="border-0 shadow-lg bg-white">
+          <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl bg-gradient-to-br from-white to-blue-50/50">
             <CardHeader>
-              <CardTitle className="text-deep-teal flex items-center gap-2">
+              <CardTitle className="text-xl font-bold text-deep-teal flex items-center gap-2">
                 <Trophy className="h-6 w-6" />
                 Student Level: {ranking.icon} {ranking.rank}
               </CardTitle>
@@ -318,7 +323,7 @@ export default async function StudentDashboardPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
                     <div className="text-2xl font-bold text-deep-teal">{totalPoints} pts</div>
-                    <div className="text-sm text-slate-blue">Total Points</div>
+                    <div className="text-sm font-medium text-slate-600">Total Points</div>
                   </div>
                   {avgScore > 0 && (
                     <div className="flex flex-col items-end">
@@ -326,7 +331,7 @@ export default async function StudentDashboardPage() {
                         <Award className="h-5 w-5" />
                         {avgScore}%
                       </div>
-                      <div className="text-sm text-slate-blue">Average Score</div>
+                      <div className="text-sm font-medium text-slate-600">Average Score</div>
                     </div>
                   )}
                 </div>
@@ -350,12 +355,13 @@ export default async function StudentDashboardPage() {
                         assignmentsCompleted={completedAssignments}
                         examsCompleted={completedExamsCount}
                       >
-                        <div className="flex items-center gap-2 text-xs text-slate-blue">
+                        <div className="flex items-center gap-2 text-xs text-slate-600">
                           <span className="font-medium">{ranking.rank}</span>
-                          <div className="flex-1 relative">
-                            <div className="w-full bg-gray-200 rounded-full h-5 overflow-hidden">
+                          {/* SHORTER PROGRESS BAR with max-w-sm */}
+                          <div className="flex-1 max-w-sm relative">
+                            <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
                               <div
-                                className="bg-deep-teal h-5 rounded-full transition-all duration-1000 ease-out"
+                                className="bg-gradient-to-r from-deep-teal to-success-green h-2.5 rounded-full transition-all duration-700 ease-out"
                                 style={{ width: `${progressPercent}%` }}
                               />
                             </div>
@@ -365,11 +371,11 @@ export default async function StudentDashboardPage() {
                           </span>
                         </div>
                       </ProgressBarDialog>
-                      <div className="text-xs text-slate-blue">
+                      <div className="text-xs text-slate-600">
                         {pointsInCurrentRank} / {pointsForNextRank} points
                       </div>
                       {pointsNeeded > 0 && (
-                        <div className="text-xs text-slate-blue">
+                        <div className="text-xs text-slate-600">
                           {pointsNeeded} more {pointsNeeded === 1 ? 'point' : 'points'} to reach {nextRankName}
                         </div>
                       )}
@@ -380,119 +386,188 @@ export default async function StudentDashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Main Category Cards - Matching the Image Design */}
+          {/* Main Category Cards - Color-Coded */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Video Lectures Card */}
+            {/* Video Lectures Card - Orange */}
             <Link href="/dashboard/student/video-lectures">
-              <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white cursor-pointer group h-full">
-                <CardContent className="p-6 flex flex-col h-full">
+              <Card className="border-none shadow-sm hover:shadow-xl transition-all bg-white rounded-2xl overflow-hidden cursor-pointer group h-full relative">
+                {/* Decorative element */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/5 to-transparent rounded-bl-[80px]"></div>
+                
+                <CardContent className="p-6 flex flex-col h-full relative">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 bg-orange-100 rounded-lg">
-                      <Video className="h-6 w-6 text-orange-600" />
+                    {/* Icon with scale animation */}
+                    <div className="p-4 bg-gradient-to-br from-orange-100 to-orange-50 rounded-2xl group-hover:scale-110 transition-transform shadow-sm">
+                      <Video className="h-7 w-7 text-orange-600" />
                     </div>
+                    
+                    {/* Notification badge */}
                     {lessons.length > 0 && (
-                      <div className="bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                      <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold rounded-xl w-8 h-8 flex items-center justify-center shadow-lg">
                         {lessons.length}
                       </div>
                     )}
                   </div>
-                  <h3 className="text-xl font-bold text-deep-teal mb-2 group-hover:text-deep-teal/80 transition-colors">
+                  
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">
                     Video Lectures
                   </h3>
-                  <p className="text-sm text-slate-blue mb-4 flex-1">
+                  
+                  <p className="text-sm text-gray-600 mb-4 flex-1">
                     {lessons.length} lesson{lessons.length !== 1 ? "s" : ""} available
                   </p>
-                  <div className="mt-auto">
-                    <p className="text-xs text-slate-blue mt-2">
-                      {completedLessons} completed
-                    </p>
+                  
+                  {/* SHORTER PROGRESS UNDER CONTENT - max-w-[140px] */}
+                  <div className="pt-4 border-t space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500">Completed</span>
+                      <span className="font-semibold text-orange-600">{completedLessons}/{lessons.length}</span>
+                    </div>
+                    <div className="flex justify-center">
+                      <div className="w-full max-w-[140px]">
+                        <div className="bg-gray-200 rounded-full h-1.5">
+                          <div 
+                            className="bg-gradient-to-r from-orange-500 to-orange-600 h-1.5 rounded-full transition-all duration-700 ease-out" 
+                            style={{ width: `${lessonsProgress}%` }} 
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </Link>
 
-            {/* Course Materials Card */}
+            {/* Course Materials Card - Purple */}
             <Link href="/dashboard/student/course-materials">
-              <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white cursor-pointer group h-full">
-                <CardContent className="p-6 flex flex-col h-full">
+              <Card className="border-none shadow-sm hover:shadow-xl transition-all bg-white rounded-2xl overflow-hidden cursor-pointer group h-full relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/5 to-transparent rounded-bl-[80px]"></div>
+                
+                <CardContent className="p-6 flex flex-col h-full relative">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 bg-purple-100 rounded-lg">
-                      <File className="h-6 w-6 text-purple-600" />
+                    <div className="p-4 bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl group-hover:scale-110 transition-transform shadow-sm">
+                      <File className="h-7 w-7 text-purple-600" />
                     </div>
                     {materials.length > 0 && (
-                      <div className="bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                      <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold rounded-xl w-8 h-8 flex items-center justify-center shadow-lg">
                         {materials.length}
                       </div>
                     )}
                   </div>
-                  <h3 className="text-xl font-bold text-deep-teal mb-2 group-hover:text-deep-teal/80 transition-colors">
+                  
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">
                     Course Materials
                   </h3>
-                  <p className="text-sm text-slate-blue mb-4 flex-1">
+                  
+                  <p className="text-sm text-gray-600 mb-4 flex-1">
                     {materials.length} material{materials.length !== 1 ? "s" : ""} available
                   </p>
-                  <div className="mt-auto">
-                    <p className="text-xs text-slate-blue mt-2">
-                      {completedMaterials} accessed
-                    </p>
+                  
+                  <div className="pt-4 border-t space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500">Accessed</span>
+                      <span className="font-semibold text-purple-600">{completedMaterials}/{materials.length}</span>
+                    </div>
+                    <div className="flex justify-center">
+                      <div className="w-full max-w-[140px]">
+                        <div className="bg-gray-200 rounded-full h-1.5">
+                          <div 
+                            className="bg-gradient-to-r from-purple-500 to-purple-600 h-1.5 rounded-full transition-all duration-700 ease-out" 
+                            style={{ width: `${materialsProgress}%` }} 
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </Link>
 
-            {/* Exams Card */}
+            {/* Exams Card - Blue */}
             <Link href="/dashboard/student/exams">
-              <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white cursor-pointer group h-full">
-                <CardContent className="p-6 flex flex-col h-full">
+              <Card className="border-none shadow-sm hover:shadow-xl transition-all bg-white rounded-2xl overflow-hidden cursor-pointer group h-full relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/5 to-transparent rounded-bl-[80px]"></div>
+                
+                <CardContent className="p-6 flex flex-col h-full relative">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 bg-blue-100 rounded-lg">
-                      <GraduationCap className="h-6 w-6 text-blue-600" />
+                    <div className="p-4 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl group-hover:scale-110 transition-transform shadow-sm">
+                      <GraduationCap className="h-7 w-7 text-blue-600" />
                     </div>
                     {exams.length > 0 && (
-                      <div className="bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                      <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold rounded-xl w-8 h-8 flex items-center justify-center shadow-lg">
                         {exams.length}
                       </div>
                     )}
                   </div>
-                  <h3 className="text-xl font-bold text-deep-teal mb-2 group-hover:text-deep-teal/80 transition-colors">
+                  
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                     Exams
                   </h3>
-                  <p className="text-sm text-slate-blue mb-4 flex-1">
+                  
+                  <p className="text-sm text-gray-600 mb-4 flex-1">
                     {exams.length} exam{exams.length !== 1 ? "s" : ""} available
                   </p>
-                  <div className="mt-auto">
-                    <p className="text-xs text-slate-blue mt-2">
-                      {completedExams.length} completed
-                    </p>
+                  
+                  <div className="pt-4 border-t space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500">Completed</span>
+                      <span className="font-semibold text-blue-600">{completedExams.length}/{exams.length}</span>
+                    </div>
+                    <div className="flex justify-center">
+                      <div className="w-full max-w-[140px]">
+                        <div className="bg-gray-200 rounded-full h-1.5">
+                          <div 
+                            className="bg-gradient-to-r from-blue-500 to-blue-600 h-1.5 rounded-full transition-all duration-700 ease-out" 
+                            style={{ width: `${examsProgress}%` }} 
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </Link>
 
-            {/* Electronic Assignments Card */}
+            {/* Electronic Assignments Card - Green */}
             <Link href="/dashboard/student/assignments">
-              <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white cursor-pointer group h-full">
-                <CardContent className="p-6 flex flex-col h-full">
+              <Card className="border-none shadow-sm hover:shadow-xl transition-all bg-white rounded-2xl overflow-hidden cursor-pointer group h-full relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500/5 to-transparent rounded-bl-[80px]"></div>
+                
+                <CardContent className="p-6 flex flex-col h-full relative">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 bg-green-100 rounded-lg">
-                      <FileText className="h-6 w-6 text-green-600" />
+                    <div className="p-4 bg-gradient-to-br from-green-100 to-green-50 rounded-2xl group-hover:scale-110 transition-transform shadow-sm">
+                      <FileText className="h-7 w-7 text-green-600" />
                     </div>
                     {quizzes.length > 0 && (
-                      <div className="bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                      <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold rounded-xl w-8 h-8 flex items-center justify-center shadow-lg">
                         {quizzes.length}
                       </div>
                     )}
                   </div>
-                  <h3 className="text-xl font-bold text-deep-teal mb-2 group-hover:text-deep-teal/80 transition-colors">
+                  
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
                     Electronic Assignments
                   </h3>
-                  <p className="text-sm text-slate-blue mb-4 flex-1">
+                  
+                  <p className="text-sm text-gray-600 mb-4 flex-1">
                     {quizzes.length} assignment{quizzes.length !== 1 ? "s" : ""} available
                   </p>
-                  <div className="mt-auto">
-                    <p className="text-xs text-slate-blue mt-2">
-                      {completedQuizzes.length} completed
-                    </p>
+                  
+                  <div className="pt-4 border-t space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500">Completed</span>
+                      <span className="font-semibold text-green-600">{completedQuizzes.length}/{quizzes.length}</span>
+                    </div>
+                    <div className="flex justify-center">
+                      <div className="w-full max-w-[140px]">
+                        <div className="bg-gray-200 rounded-full h-1.5">
+                          <div 
+                            className="bg-gradient-to-r from-green-500 to-green-600 h-1.5 rounded-full transition-all duration-700 ease-out" 
+                            style={{ width: `${assignmentsProgress}%` }} 
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
