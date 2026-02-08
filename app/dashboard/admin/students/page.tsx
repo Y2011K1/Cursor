@@ -15,7 +15,6 @@ export default async function StudentsPage() {
   const supabase = await createClient()
   const adminClient = getAdminClient()
 
-  // Fetch all students with their enrollments and classroom details
   const { data: students, error } = await supabase
     .from("profiles")
     .select(`
@@ -26,11 +25,11 @@ export default async function StudentsPage() {
         id,
         is_active,
         created_at,
-        classroom:classrooms(
+        course:courses(
           id,
           name,
           subject,
-          teacher:profiles!classrooms_teacher_id_fkey(full_name)
+          teacher:profiles!courses_teacher_id_fkey(full_name)
         )
       )
     `)
@@ -183,23 +182,22 @@ export default async function StudentsPage() {
                               >
                                 <div className="flex-1">
                                   <div className="font-medium text-gray-900">
-                                    {enrollment.classroom?.name || 'Unknown Classroom'}
+                                    {enrollment.course?.name || 'Unknown Course'}
                                   </div>
                                   <div className="text-xs text-gray-500">
-                                    Subject: {enrollment.classroom?.subject || 'N/A'} • 
-                                    Teacher: {enrollment.classroom?.teacher?.full_name || 'Unknown'}
+                                    Subject: {enrollment.course?.subject || 'N/A'} • 
+                                    Teacher: {enrollment.course?.teacher?.full_name || 'Unknown'}
                                   </div>
                                   <div className="text-xs text-gray-400 mt-1">
                                     Enrolled: {new Date(enrollment.created_at).toLocaleDateString()}
                                   </div>
                                 </div>
                                 
-                                {/* Remove from Classroom Button */}
                                 <RemoveFromClassroomButton
                                   studentId={student.id}
                                   studentName={student.full_name}
-                                  classroomId={enrollment.classroom?.id || ''}
-                                  classroomName={enrollment.classroom?.name || 'Unknown'}
+                                  courseId={enrollment.course?.id || ''}
+                                  courseName={enrollment.course?.name || 'Unknown'}
                                 />
                               </div>
                             ))}

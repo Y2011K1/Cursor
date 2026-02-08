@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, GraduationCap, BookOpen, BarChart3, TrendingUp, CheckCircle2, Award, User, File, Trophy, FileText } from "lucide-react"
+import { Users, GraduationCap, BookOpen, BarChart3, TrendingUp, CheckCircle2, Award, User, File, Trophy, FileText, Layout } from "lucide-react"
 import { Navigation } from "@/components/navigation"
 import Link from "next/link"
 import { unstable_noStore as noStore } from "next/cache"
@@ -28,7 +28,7 @@ export default async function AdminDashboardPage() {
   const [teachersResult, studentsResult, classroomsResult, enrollmentsResult] = await Promise.all([
     supabase.from("profiles").select("id", { count: "exact" }).eq("role", "teacher"),
     supabase.from("profiles").select("id", { count: "exact" }).eq("role", "student"),
-    supabase.from("classrooms").select("id", { count: "exact" }).eq("is_active", true),
+    supabase.from("courses").select("id", { count: "exact" }).eq("is_active", true),
     supabase.from("enrollments").select("id", { count: "exact" }).eq("is_active", true),
   ])
 
@@ -485,6 +485,12 @@ export default async function AdminDashboardPage() {
                   <Button className="w-full bg-soft-mint hover:bg-soft-mint/80 text-dark-text rounded-xl h-12 shadow-sm hover:shadow transition-all duration-300 font-medium" variant="outline">
                     <Users className="h-5 w-5 mr-2" />
                     Manage Students
+                  </Button>
+                </Link>
+                <Link href="/dashboard/admin/landing-page" className="block">
+                  <Button className="w-full bg-white border-deep-teal/30 text-deep-teal hover:bg-light-sky rounded-xl h-12 shadow-sm hover:shadow transition-all duration-300 font-medium" variant="outline">
+                    <Layout className="h-5 w-5 mr-2" />
+                    Landing Page
                   </Button>
                 </Link>
               </CardContent>

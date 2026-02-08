@@ -7,37 +7,31 @@ export default async function TeacherDashboardPage() {
     const profile = await requireRole("teacher")
     const supabase = await createClient()
 
-    // Get teacher's classroom
-    const { data: classroom, error: classroomError } = await supabase
-      .from("classrooms")
+    const { data: course, error: courseError } = await supabase
+      .from("courses")
       .select("id")
       .eq("teacher_id", profile.id)
       .single()
 
-    if (classroomError || !classroom) {
-      // If no classroom, show error (shouldn't happen as classrooms are auto-created)
-      console.error("Classroom fetch error:", classroomError)
+    if (courseError || !course) {
+      console.error("Course fetch error:", courseError)
       console.error("Profile ID:", profile.id)
       console.error("Profile role:", profile.role)
-      
-      // Try to check if any classrooms exist for this teacher
-      const { data: allClassrooms, error: checkError } = await supabase
-        .from("classrooms")
+      const { data: allCourses, error: checkError } = await supabase
+        .from("courses")
         .select("id, teacher_id, name")
         .eq("teacher_id", profile.id)
-      
-      console.error("All classrooms check:", allClassrooms, checkError)
-      
+      console.error("All courses check:", allCourses, checkError)
       return (
         <div className="min-h-screen bg-light-sky flex items-center justify-center">
           <div className="text-center max-w-md">
-            <h1 className="text-2xl font-bold text-deep-teal mb-2">No Classroom Found</h1>
-            <p className="text-slate-blue mb-4">Please contact an administrator to set up your classroom.</p>
-            {classroomError && (
+            <h1 className="text-2xl font-bold text-deep-teal mb-2">No Course Found</h1>
+            <p className="text-slate-blue mb-4">Please contact an administrator to set up your course.</p>
+            {courseError && (
               <div className="mt-4 p-4 bg-warm-coral/10 rounded-md">
                 <p className="text-sm text-warm-coral font-semibold mb-2">Error Details:</p>
-                <p className="text-xs text-slate-blue">{classroomError.message}</p>
-                <p className="text-xs text-slate-blue mt-1">Code: {classroomError.code}</p>
+                <p className="text-xs text-slate-blue">{courseError.message}</p>
+                <p className="text-xs text-slate-blue mt-1">Code: {courseError.code}</p>
               </div>
             )}
           </div>
@@ -45,20 +39,17 @@ export default async function TeacherDashboardPage() {
       )
     }
 
-    // Verify classroom ID is valid before redirecting
-    if (!classroom.id) {
+    if (!course.id) {
       return (
         <div className="min-h-screen bg-light-sky flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-deep-teal mb-2">Invalid Classroom</h1>
-            <p className="text-slate-blue">Classroom ID is missing. Please contact an administrator.</p>
+            <h1 className="text-2xl font-bold text-deep-teal mb-2">Invalid Course</h1>
+            <p className="text-slate-blue">Course ID is missing. Please contact an administrator.</p>
           </div>
         </div>
       )
     }
-
-    // Redirect directly to classroom content page
-    redirect(`/dashboard/teacher/classroom/${classroom.id}`)
+    redirect(`/dashboard/teacher/classroom/${course.id}`)
   } catch (error: any) {
     // If it's a redirect, re-throw it
     if (error && typeof error === 'object' && 'digest' in error) {

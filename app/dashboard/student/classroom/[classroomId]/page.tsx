@@ -21,18 +21,18 @@ export default async function ClassroomPage({ params }: ClassroomPageProps) {
     .from("enrollments")
     .select(`
       *,
-      classroom:classrooms (
+      course:courses (
         id,
         name,
         description,
-        teacher:profiles!classrooms_teacher_id_fkey (
+        teacher:profiles!courses_teacher_id_fkey (
           id,
           full_name
         )
       )
     `)
     .eq("student_id", profile.id)
-    .eq("classroom_id", classroomId)
+    .eq("course_id", classroomId)
     .eq("is_active", true)
     .single()
 
@@ -40,26 +40,26 @@ export default async function ClassroomPage({ params }: ClassroomPageProps) {
     notFound()
   }
 
-  const classroom = enrollment.classroom as any
+  const classroom = enrollment.course as any
 
   // Get all data in parallel for better performance
   const [lessonsResult, quizzesResult, examsResult] = await Promise.all([
     supabase
       .from("lessons")
       .select("*")
-      .eq("classroom_id", classroomId)
+      .eq("course_id", classroomId)
       .eq("is_published", true)
       .order("order_index", { ascending: true }),
     supabase
       .from("quizzes")
       .select("*")
-      .eq("classroom_id", classroomId)
+      .eq("course_id", classroomId)
       .eq("is_published", true)
       .order("created_at", { ascending: false }),
     supabase
       .from("exams")
       .select("*")
-      .eq("classroom_id", classroomId)
+      .eq("course_id", classroomId)
       .eq("is_published", true)
       .order("created_at", { ascending: false })
   ])

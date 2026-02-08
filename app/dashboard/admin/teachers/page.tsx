@@ -18,7 +18,7 @@ export default async function TeachersPage() {
       .from("profiles")
       .select(`
         *,
-        classroom:classrooms (
+        course:courses (
           id,
           name,
           max_students
@@ -28,17 +28,16 @@ export default async function TeachersPage() {
       .order("created_at", { ascending: false }),
     supabase
       .from("enrollments")
-      .select("classroom_id")
+      .select("course_id")
       .eq("is_active", true)
   ])
 
   const teachers = teachersResult.data || []
   const enrollmentCounts = enrollmentsResult.data || []
 
-  // Build counts map from enrollments
   const countsMap = new Map<string, number>()
-  enrollmentCounts.forEach((e) => {
-    countsMap.set(e.classroom_id, (countsMap.get(e.classroom_id) || 0) + 1)
+  enrollmentCounts.forEach((e: any) => {
+    countsMap.set(e.course_id, (countsMap.get(e.course_id) || 0) + 1)
   })
 
   return (
@@ -61,8 +60,8 @@ export default async function TeachersPage() {
           {teachers && teachers.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {teachers.map((teacher: any) => {
-                const studentCount = teacher.classroom
-                  ? countsMap.get(teacher.classroom.id) || 0
+                const studentCount = teacher.course
+                  ? countsMap.get(teacher.course.id) || 0
                   : 0
 
                 return (
@@ -76,33 +75,33 @@ export default async function TeachersPage() {
                         {teacher.full_name}
                       </CardTitle>
                       <CardDescription>
-                        {teacher.classroom?.name || "No classroom"}
+                        {teacher.course?.name || "No course"}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="space-y-2 text-sm">
-                        {teacher.classroom && (
+                        {teacher.course && (
                           <div className="flex items-center justify-between">
                             <span className="text-slate-blue flex items-center gap-1">
                               <Users className="h-3 w-3" />
                               Students:
                             </span>
                             <span className="text-dark-text font-medium">
-                              {studentCount} / {teacher.classroom.max_students}
+                              {studentCount} / {teacher.course.max_students}
                             </span>
                           </div>
                         )}
                       </div>
 
                       <div className="flex gap-2">
-                        {teacher.classroom && (
+                        {teacher.course && (
                           <Button
                             variant="outline"
                             className="flex-1"
                             asChild
                           >
-                            <Link href={`/dashboard/admin/classrooms/${teacher.classroom.id}`}>
-                              View Classroom
+                            <Link href={`/dashboard/admin/courses/${teacher.course.id}`}>
+                              View Course
                             </Link>
                           </Button>
                         )}

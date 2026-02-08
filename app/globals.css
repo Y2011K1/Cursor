@@ -4,6 +4,15 @@
 
 @layer base {
   :root {
+    /* EduPlatform design system */
+    --deep-teal: #2E5266;
+    --slate-blue: #6E8898;
+    --soft-mint: #9FC5D4;
+    --light-sky: #E8F4F8;
+    --warm-coral: #E07A5F;
+    --success-green: #81B29A;
+    --warning-yellow: #F4A261;
+    --error-red: #E76F51;
     --background: 210 40% 98%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;

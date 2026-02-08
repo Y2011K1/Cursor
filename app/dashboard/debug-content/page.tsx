@@ -47,7 +47,7 @@ export default async function DebugContentPage() {
     profile.role === "student" 
       ? supabase.from("enrollments").select("*").eq("student_id", profile.id)
       : Promise.resolve({ data: [], error: null }),
-    supabase.from("classrooms").select("id, name, is_active, teacher_id").order("created_at", { ascending: false })
+    supabase.from("courses").select("id, name, is_active, teacher_id").order("created_at", { ascending: false })
   ])
 
   return (

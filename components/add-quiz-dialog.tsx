@@ -69,7 +69,7 @@ export function AddQuizDialog({ classroomId }: AddQuizDialogProps) {
       const { error: insertError } = await supabase
         .from("quizzes")
         .insert({
-          classroom_id: classroomId,
+          course_id: classroomId,
           title: data.title,
           description: data.description || null,
           time_limit_minutes: data.time_limit_minutes ? parseInt(data.time_limit_minutes) : null,

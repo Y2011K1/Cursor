@@ -54,7 +54,7 @@ export default function StudentExamPage({ params }: ExamPageProps) {
             .eq("id", user.id)
             .single(),
           supabase
-            .from("classrooms")
+            .from("courses")
             .select("id")
             .eq("id", courseId)
             .eq("is_active", true)
@@ -68,7 +68,7 @@ export default function StudentExamPage({ params }: ExamPageProps) {
             .from("enrollments")
             .select("id")
             .eq("student_id", user.id)
-            .eq("classroom_id", classroomResult.data.id)
+            .eq("course_id", classroomResult.data.id)
             .eq("is_active", true)
             .single()
 
@@ -84,7 +84,7 @@ export default function StudentExamPage({ params }: ExamPageProps) {
             .from("exams")
             .select("*")
             .eq("id", examId)
-            .eq("classroom_id", courseId)
+            .eq("course_id", courseId)
             .eq("is_published", true)
             .single(),
           supabase

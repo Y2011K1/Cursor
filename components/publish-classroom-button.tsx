@@ -20,7 +20,7 @@ export function PublishClassroomButton({ classroomId, isActive }: PublishClassro
     setIsUpdating(true)
     try {
       const { error } = await supabase
-        .from("classrooms")
+        .from("courses")
         .update({ is_active: !isActive })
         .eq("id", classroomId)
 

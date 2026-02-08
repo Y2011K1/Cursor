@@ -17,16 +17,22 @@ import {
 interface RemoveFromClassroomButtonProps {
   studentId: string
   studentName: string
-  classroomId: string
-  classroomName: string
+  courseId?: string
+  courseName?: string
+  classroomId?: string
+  classroomName?: string
 }
 
 export function RemoveFromClassroomButton({
   studentId,
   studentName,
+  courseId: courseIdProp,
+  courseName: courseNameProp,
   classroomId,
   classroomName
 }: RemoveFromClassroomButtonProps) {
+  const courseId = courseIdProp ?? classroomId ?? ''
+  const courseName = courseNameProp ?? classroomName ?? 'Unknown'
   const [open, setOpen] = useState(false)
   const [isRemoving, setIsRemoving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -40,7 +46,7 @@ export function RemoveFromClassroomButton({
       const response = await fetch('/api/admin/remove-from-classroom', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId, classroomId })
+        body: JSON.stringify({ studentId, courseId })
       })
 
       const result = await response.json()
@@ -49,7 +55,7 @@ export function RemoveFromClassroomButton({
         setOpen(false)
         router.refresh()
       } else {
-        setError(result.error || "Failed to remove student from classroom")
+        setError(result.error || "Failed to remove student from course")
       }
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred")
@@ -73,17 +79,17 @@ export function RemoveFromClassroomButton({
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="text-deep-teal">
-            Remove from Classroom
+            Remove from Course
           </DialogTitle>
           <DialogDescription>
-            Remove <strong>{studentName}</strong> from <strong>{classroomName}</strong>?
+            Remove <strong>{studentName}</strong> from <strong>{courseName}</strong>?
             
             <div className="mt-4 space-y-2 text-sm">
               <p className="font-semibold text-gray-900">This will:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Remove the student from this classroom only</li>
+                <li>Remove the student from this course only</li>
                 <li>Keep their account active</li>
-                <li>Preserve their data in other classrooms</li>
+                <li>Preserve their data in other courses</li>
               </ul>
               <p className="text-blue-600 font-medium mt-3">
                 ℹ️ The student can re-enroll later if needed
@@ -120,7 +126,7 @@ export function RemoveFromClassroomButton({
             ) : (
               <>
                 <UserMinus className="h-4 w-4 mr-2" />
-                Remove from Classroom
+                Remove from Course
               </>
             )}
           </Button>

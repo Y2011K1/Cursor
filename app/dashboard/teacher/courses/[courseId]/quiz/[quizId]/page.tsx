@@ -21,26 +21,23 @@ export default async function QuizDetailPage({ params }: QuizDetailPageProps) {
 
   // Get teacher's classroom
   const { data: classroom } = await supabase
-    .from("classrooms")
+    .from("courses")
     .select("id")
     .eq("teacher_id", profile.id)
     .single()
 
-  // Get quiz and verify it belongs to teacher's course
   const { data: quiz } = await supabase
     .from("quizzes")
     .select(`
       *,
       course:courses!inner (
-        id,
-        title,
-        classroom_id
+        id
       )
     `)
     .eq("id", quizId)
     .single()
 
-  if (!quiz || (quiz.course as any).classroom_id !== classroom?.id) {
+  if (!quiz || (quiz.course as any).id !== classroom?.id) {
     notFound()
   }
 

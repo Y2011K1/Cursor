@@ -23,7 +23,7 @@ export default async function CourseMaterialsPage() {
     .from("enrollments")
     .select(`
       *,
-      classroom:classrooms!inner (
+      course:courses!inner (
         id,
         name,
         subject,
@@ -33,15 +33,15 @@ export default async function CourseMaterialsPage() {
     .eq("student_id", profile.id)
     .eq("is_active", true)
   
-  const activeEnrollments = enrollments?.filter((e: any) => e.classroom?.is_active === true) || []
-  const classroomIds = activeEnrollments?.map((e: any) => e.classroom?.id).filter(Boolean) || []
+  const activeEnrollments = enrollments?.filter((e: any) => e.course?.is_active === true) || []
+  const courseIds = activeEnrollments?.map((e: any) => e.course?.id).filter(Boolean) || []
 
   // Get all course materials - RLS will filter by enrollment
   const { data: materials, error: materialsError } = await supabase
     .from("course_materials")
     .select(`
       *,
-      classroom:classrooms!inner (
+      course:courses!inner (
         id,
         name,
         subject
@@ -80,7 +80,7 @@ export default async function CourseMaterialsPage() {
           {materials && materials.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {materials.map((material: any) => {
-                const classroom = material.classroom
+                const course = material.course
                 
                 return (
                   <Card 
@@ -97,7 +97,7 @@ export default async function CourseMaterialsPage() {
                         {material.title}
                       </CardTitle>
                       <CardDescription className="text-xs">
-                        {classroom?.name} • {classroom?.subject}
+                        {course?.name} • {course?.subject}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">

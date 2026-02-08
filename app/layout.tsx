@@ -11,8 +11,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Educational Platform",
-  description: "A focused, secure, and humane teaching platform",
+  title: "EduPlatform – Learn Smarter. Learn Better.",
+  description: "Expert instructors and structured courses help you succeed. Join thousands of students on EduPlatform.",
 }
 
 export default function RootLayout({

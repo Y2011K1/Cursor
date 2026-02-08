@@ -62,7 +62,7 @@ export function AddExamDialog({ classroomId }: AddExamDialogProps) {
       const { error: insertError } = await supabase
         .from("exams")
         .insert({
-          classroom_id: classroomId,
+          course_id: classroomId,
           title: data.title,
           description: data.description || null,
           time_limit_minutes: parseInt(data.time_limit_minutes),

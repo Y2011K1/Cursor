@@ -7,19 +7,13 @@ export async function toggleCoursePublish(courseId: string, isPublished: boolean
   const profile = await requireRole("teacher")
   const supabase = await createClient()
 
-  // Verify teacher owns this course
   const { data: course } = await supabase
     .from("courses")
-    .select(`
-      *,
-      classroom:classrooms!inner (
-        teacher_id
-      )
-    `)
+    .select("id, teacher_id")
     .eq("id", courseId)
     .single()
 
-  if (!course || (course.classroom as any).teacher_id !== profile.id) {
+  if (!course || course.teacher_id !== profile.id) {
     return {
       success: false,
       error: "Unauthorized",
@@ -28,7 +22,7 @@ export async function toggleCoursePublish(courseId: string, isPublished: boolean
 
   const { error } = await supabase
     .from("courses")
-    .update({ is_published: !isPublished })
+    .update({ is_active: !isPublished })
     .eq("id", courseId)
 
   if (error) {
@@ -47,19 +41,13 @@ export async function deleteCourse(courseId: string) {
   const profile = await requireRole("teacher")
   const supabase = await createClient()
 
-  // Verify teacher owns this course
   const { data: course } = await supabase
     .from("courses")
-    .select(`
-      *,
-      classroom:classrooms!inner (
-        teacher_id
-      )
-    `)
+    .select("id, teacher_id")
     .eq("id", courseId)
     .single()
 
-  if (!course || (course.classroom as any).teacher_id !== profile.id) {
+  if (!course || course.teacher_id !== profile.id) {
     return {
       success: false,
       error: "Unauthorized",

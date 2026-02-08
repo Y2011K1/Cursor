@@ -85,7 +85,7 @@ export function AddCourseMaterialDialog({ classroomId }: AddCourseMaterialDialog
       const { data: materials } = await supabase
         .from("course_materials")
         .select("order_index")
-        .eq("classroom_id", classroomId)
+        .eq("course_id", classroomId)
         .order("order_index", { ascending: false })
         .limit(1)
 
@@ -99,7 +99,7 @@ export function AddCourseMaterialDialog({ classroomId }: AddCourseMaterialDialog
       const { error: insertError } = await supabase
         .from("course_materials")
         .insert({
-          classroom_id: classroomId,
+          course_id: classroomId,
           title: data.title,
           description: data.description || null,
           file_url: data.file_url,

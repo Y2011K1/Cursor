@@ -21,7 +21,7 @@ export default async function QuizDetailPage({ params }: QuizDetailPageProps) {
 
   // Get teacher's classroom
   const { data: classroom } = await supabase
-    .from("classrooms")
+    .from("courses")
     .select("id")
     .eq("teacher_id", profile.id)
     .single()
@@ -31,7 +31,7 @@ export default async function QuizDetailPage({ params }: QuizDetailPageProps) {
     .from("quizzes")
     .select("*")
     .eq("id", quizId)
-    .eq("classroom_id", classroom?.id)
+    .eq("course_id", classroom?.id)
     .single()
 
   if (!quiz) {

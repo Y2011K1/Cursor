@@ -84,7 +84,7 @@ export function EditClassroomDialog({ classroomId, currentData }: EditClassroomD
 
     try {
       const { error: updateError } = await supabase
-        .from("classrooms")
+        .from("courses")
         .update({
           name: data.name,
           description: data.description || null,

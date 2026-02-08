@@ -130,7 +130,7 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
       const { data: lessons } = await supabase
         .from("lessons")
         .select("order_index")
-        .eq("classroom_id", classroomId)
+        .eq("course_id", classroomId)
         .order("order_index", { ascending: false })
         .limit(1)
 
@@ -141,7 +141,7 @@ export function AddLessonDialog({ classroomId }: AddLessonDialogProps) {
       const { error: insertError } = await supabase
         .from("lessons")
         .insert({
-          classroom_id: classroomId,
+          course_id: classroomId,
           title: data.title,
           content: data.content || null,
           video_url: finalVideoUrl,

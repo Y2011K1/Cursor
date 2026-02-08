@@ -57,7 +57,7 @@ export function CreateCourseDialog({ classroomId }: CreateCourseDialogProps) {
       const { data: existingCourses, error: checkError } = await supabase
         .from("courses")
         .select("id")
-        .eq("classroom_id", classroomId)
+        .eq("course_id", classroomId)
         .limit(1)
 
       if (checkError) {
@@ -76,7 +76,7 @@ export function CreateCourseDialog({ classroomId }: CreateCourseDialogProps) {
       const { error: insertError } = await supabase
         .from("courses")
         .insert({
-          classroom_id: classroomId,
+          course_id: classroomId,
           title: data.title,
           description: data.description || null,
           order_index: 0,

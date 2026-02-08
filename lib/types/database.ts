@@ -1,6 +1,7 @@
 /**
  * Database Types
  * Generated types for Supabase database schema
+ * Note: "courses" table (formerly "classrooms") is the main course entity.
  */
 
 export type UserRole = 'admin' | 'teacher' | 'student'
@@ -13,7 +14,7 @@ export interface Profile {
   updated_at: string
 }
 
-export interface Classroom {
+export interface Course {
   id: string
   teacher_id: string
   name: string
@@ -22,25 +23,23 @@ export interface Classroom {
   is_active: boolean
   created_at: string
   updated_at: string
+  subject?: string | null
+  specialization?: string | null
+  difficulty_level?: 'beginner' | 'intermediate' | 'advanced' | null
+  featured?: boolean
+  rating?: number
+  total_ratings?: number
+  thumbnail_url?: string | null
+  estimated_duration_hours?: number | null
+  certification_available?: boolean
 }
 
 export interface Enrollment {
   id: string
   student_id: string
-  classroom_id: string
+  course_id: string
   enrolled_at: string
   is_active: boolean
-}
-
-export interface Course {
-  id: string
-  classroom_id: string
-  title: string
-  description: string | null
-  order_index: number
-  is_published: boolean
-  created_at: string
-  updated_at: string
 }
 
 export interface Lesson {
@@ -163,19 +162,15 @@ export interface Message {
   id: string
   sender_id: string
   receiver_id: string
-  classroom_id: string | null
+  course_id: string | null
   content: string
   is_read: boolean
   created_at: string
 }
 
 // Helper types for joins
-export interface ClassroomWithTeacher extends Classroom {
+export interface CourseWithTeacher extends Course {
   teacher: Profile
-}
-
-export interface CourseWithClassroom extends Course {
-  classroom: Classroom
 }
 
 export interface LessonWithCourse extends Lesson {
@@ -190,8 +185,8 @@ export interface ExamWithCourse extends Exam {
   course: Course
 }
 
-export interface EnrollmentWithClassroom extends Enrollment {
-  classroom: Classroom
+export interface EnrollmentWithCourse extends Enrollment {
+  course: Course
 }
 
 export interface EnrollmentWithStudent extends Enrollment {

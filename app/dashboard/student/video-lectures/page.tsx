@@ -22,7 +22,7 @@ export default async function VideoLecturesPage() {
     .from("enrollments")
     .select(`
       *,
-      classroom:classrooms!inner (
+      course:courses!inner (
         id,
         name,
         subject,
@@ -32,15 +32,15 @@ export default async function VideoLecturesPage() {
     .eq("student_id", profile.id)
     .eq("is_active", true)
   
-  const activeEnrollments = enrollments?.filter((e: any) => e.classroom?.is_active === true) || []
-  const classroomIds = activeEnrollments?.map((e: any) => e.classroom?.id).filter(Boolean) || []
+  const activeEnrollments = enrollments?.filter((e: any) => e.course?.is_active === true) || []
+  const courseIds = activeEnrollments?.map((e: any) => e.course?.id).filter(Boolean) || []
 
   // Get all lessons - RLS will filter by enrollment
   const { data: lessons, error: lessonsError } = await supabase
     .from("lessons")
     .select(`
       *,
-      classroom:classrooms!inner (
+      course:courses!inner (
         id,
         name,
         subject
@@ -94,14 +94,14 @@ export default async function VideoLecturesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {lessons.map((lesson: any, index: number) => {
                 const isCompleted = progressMap.get(lesson.id) || false
-                const classroom = lesson.classroom
+                const course = lesson.course
                 
                 return (
                   <Card 
                     key={lesson.id}
                     className="border-0 shadow-md hover:shadow-xl transition-all duration-300 bg-white group"
                   >
-                    <Link href={`/dashboard/student/course/${lesson.classroom_id}/lesson/${lesson.id}`}>
+                    <Link href={`/dashboard/student/course/${lesson.course_id}/lesson/${lesson.id}`}>
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between mb-2">
                           <div className="p-2 bg-orange-100 rounded-lg">
@@ -119,7 +119,7 @@ export default async function VideoLecturesPage() {
                           {lesson.title}
                         </CardTitle>
                         <CardDescription className="text-xs">
-                          {classroom?.name} • {classroom?.subject}
+                          {course?.name} • {course?.subject}
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-3">

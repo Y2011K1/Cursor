@@ -22,7 +22,7 @@ export default async function AssignmentsPage() {
     .from("enrollments")
     .select(`
       *,
-      classroom:classrooms!inner (
+      course:courses!inner (
         id,
         name,
         subject,
@@ -32,15 +32,15 @@ export default async function AssignmentsPage() {
     .eq("student_id", profile.id)
     .eq("is_active", true)
   
-  const activeEnrollments = enrollments?.filter((e: any) => e.classroom?.is_active === true) || []
-  const classroomIds = activeEnrollments?.map((e: any) => e.classroom?.id).filter(Boolean) || []
+  const activeEnrollments = enrollments?.filter((e: any) => e.course?.is_active === true) || []
+  const courseIds = activeEnrollments?.map((e: any) => e.course?.id).filter(Boolean) || []
 
   // Get all quizzes (assignments) - RLS will filter by enrollment
   const { data: quizzes, error: quizzesError } = await supabase
     .from("quizzes")
     .select(`
       *,
-      classroom:classrooms!inner (
+      course:courses!inner (
         id,
         name,
         subject
@@ -96,14 +96,14 @@ export default async function AssignmentsPage() {
               {quizzes.map((quiz: any) => {
                 const submission = submissionMap.get(quiz.id)
                 const isCompleted = submission?.is_completed || false
-                const classroom = quiz.classroom
+                const course = quiz.course
                 
                 return (
                   <Card 
                     key={quiz.id}
                     className="border-0 shadow-md hover:shadow-xl transition-all duration-300 bg-white group"
                   >
-                    <Link href={`/dashboard/student/course/${quiz.classroom_id}/quiz/${quiz.id}`}>
+                    <Link href={`/dashboard/student/course/${quiz.course_id}/quiz/${quiz.id}`}>
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between mb-2">
                           <div className="p-2 bg-green-100 rounded-lg">
@@ -117,7 +117,7 @@ export default async function AssignmentsPage() {
                           {quiz.title}
                         </CardTitle>
                         <CardDescription className="text-xs">
-                          {classroom?.name} • {classroom?.subject}
+                          {course?.name} • {course?.subject}
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-3">

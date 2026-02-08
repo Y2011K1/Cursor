@@ -7,7 +7,7 @@ export const getCachedEnrollments = cache(async (studentId: string) => {
     .from("enrollments")
     .select(`
       *,
-      classroom:classrooms!inner (
+      course:courses!inner (
         id,
         name,
         subject,
@@ -18,12 +18,12 @@ export const getCachedEnrollments = cache(async (studentId: string) => {
     .eq("is_active", true)
 })
 
-export const getCachedClassroom = cache(async (classroomId: string) => {
+export const getCachedCourse = cache(async (courseId: string) => {
   const supabase = await createClient()
   return supabase
-    .from("classrooms")
+    .from("courses")
     .select("*")
-    .eq("id", classroomId)
+    .eq("id", courseId)
     .single()
 })
 
@@ -36,12 +36,16 @@ export const getCachedProfile = cache(async (userId: string) => {
     .single()
 })
 
-export const getCachedTeacherClassroom = cache(async (teacherId: string) => {
+export const getCachedTeacherCourse = cache(async (teacherId: string) => {
   const supabase = await createClient()
   return supabase
-    .from("classrooms")
+    .from("courses")
     .select("*")
     .eq("teacher_id", teacherId)
     .eq("is_active", true)
     .single()
 })
+
+// Backward-compatible aliases (prefer getCachedCourse / getCachedTeacherCourse)
+export const getCachedClassroom = getCachedCourse
+export const getCachedTeacherClassroom = getCachedTeacherCourse

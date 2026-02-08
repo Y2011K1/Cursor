@@ -26,17 +26,16 @@ export default async function StudentDashboardPage() {
   const profile = await requireRole("student")
   const supabase = await createClient()
 
-  // Get student's enrollments with classroom details
   const { data: enrollments } = await supabase
     .from("enrollments")
     .select(`
       *,
-      classroom:classrooms!inner (
+      course:courses!inner (
         id,
         name,
         subject,
         is_active,
-        teacher:profiles!classrooms_teacher_id_fkey (
+        teacher:profiles!courses_teacher_id_fkey (
           id,
           full_name
         )
@@ -45,12 +44,10 @@ export default async function StudentDashboardPage() {
     .eq("student_id", profile.id)
     .eq("is_active", true)
   
-  // Filter out enrollments with inactive classrooms
-  const activeEnrollments = enrollments?.filter((e: any) => e.classroom?.is_active === true) || []
-  const classroomIds = activeEnrollments?.map((e: any) => e.classroom?.id).filter(Boolean) || []
+  const activeEnrollments = enrollments?.filter((e: any) => e.course?.is_active === true) || []
+  const courseIds = activeEnrollments?.map((e: any) => e.course?.id).filter(Boolean) || []
   
-  // If no classrooms, show empty state
-  if (classroomIds.length === 0) {
+  if (courseIds.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-light-sky via-white to-light-sky">
         <Navigation userRole="student" userName={profile.full_name} />
@@ -64,18 +61,18 @@ export default async function StudentDashboardPage() {
                 Welcome, {profile.full_name}!
               </h1>
               <p className="text-lg text-slate-blue">
-                Start your learning journey by joining a classroom
+                Start your learning journey by joining a course
               </p>
             </div>
             <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl max-w-2xl mx-auto bg-gradient-to-br from-white to-blue-50/50">
               <CardContent className="p-8 text-center">
                 <p className="text-slate-blue mb-6">
-                  Browse available classrooms and join one to start learning.
+                  Browse available courses and join one to start learning.
                 </p>
                 <Button size="lg" className="bg-deep-teal hover:bg-deep-teal/90 text-white px-8 rounded-xl h-12 shadow-sm hover:shadow transition-all duration-300 font-medium" asChild>
-                  <Link href="/dashboard/student/browse">
+                  <Link href="/dashboard/student/browse-courses">
                     <Plus className="h-5 w-5 mr-2" />
-                    Browse Classrooms
+                    Browse Courses
                   </Link>
                 </Button>
               </CardContent>
@@ -86,15 +83,12 @@ export default async function StudentDashboardPage() {
     )
   }
 
-  // Get all content in parallel - RLS will filter by enrollment
-  // Using inner join with classrooms to ensure RLS policies work correctly
-  // Matching the structure used in the assignments/exams/lessons pages
   const [lessonsResult, quizzesResult, examsResult, materialsResult] = await Promise.all([
     supabase
       .from("lessons")
       .select(`
         *,
-        classroom:classrooms!inner (
+        course:courses!inner (
           id,
           name,
           subject
@@ -105,7 +99,7 @@ export default async function StudentDashboardPage() {
       .from("quizzes")
       .select(`
         *,
-        classroom:classrooms!inner (
+        course:courses!inner (
           id,
           name,
           subject
@@ -117,7 +111,7 @@ export default async function StudentDashboardPage() {
       .from("exams")
       .select(`
         *,
-        classroom:classrooms!inner (
+        course:courses!inner (
           id,
           name,
           subject
@@ -128,7 +122,7 @@ export default async function StudentDashboardPage() {
       .from("course_materials")
       .select(`
         *,
-        classroom:classrooms!inner (
+        course:courses!inner (
           id,
           name,
           subject
@@ -262,11 +256,10 @@ export default async function StudentDashboardPage() {
   const pendingAssignments = quizzes.length - completedQuizzes.length
   const pendingExams = exams.length - completedExams.length
 
-  // Prepare classrooms for switcher
-  const classroomsForSwitcher = activeEnrollments.map((e: any) => ({
-    id: e.classroom.id,
-    name: e.classroom.name,
-    subject: e.classroom.subject
+  const coursesForSwitcher = activeEnrollments.map((e: any) => ({
+    id: e.course.id,
+    name: e.course.name,
+    subject: e.course.subject
   }))
 
   return (
@@ -288,9 +281,9 @@ export default async function StudentDashboardPage() {
                 <p className="text-white/90 text-lg mb-4">
                   Continue your learning journey
                 </p>
-                {classroomsForSwitcher.length > 0 && (
+                {coursesForSwitcher.length > 0 && (
                   <div className="mt-4">
-                    <ClassroomSwitcher classrooms={classroomsForSwitcher} />
+                    <ClassroomSwitcher classrooms={coursesForSwitcher} />
                   </div>
                 )}
               </div>
@@ -301,9 +294,9 @@ export default async function StudentDashboardPage() {
                   className="bg-white text-deep-teal hover:bg-white/90 shadow-sm hover:shadow transition-all duration-300 rounded-xl h-12 font-medium" 
                   asChild
                 >
-                  <Link href="/dashboard/student/browse">
+                  <Link href="/dashboard/student/browse-courses">
                     <Plus className="h-5 w-5 mr-2" />
-                    Browse Classrooms
+                    Browse Courses
                   </Link>
                 </Button>
               </div>
@@ -569,6 +562,42 @@ export default async function StudentDashboardPage() {
                       </div>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* My Scores Card */}
+            <Link href="/dashboard/student/my-scores">
+              <Card className="border-none shadow-sm hover:shadow-xl transition-all bg-white rounded-2xl overflow-hidden cursor-pointer group h-full relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-500/5 to-transparent rounded-bl-[80px]"></div>
+                <CardContent className="p-6 flex flex-col h-full relative">
+                  <div className="p-4 bg-gradient-to-br from-amber-100 to-amber-50 rounded-2xl group-hover:scale-110 transition-transform shadow-sm">
+                    <Trophy className="h-7 w-7 text-amber-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-amber-600 transition-colors mt-4">
+                    My Scores
+                  </h3>
+                  <p className="text-sm text-gray-600 flex-1">
+                    View quiz and assignment scores
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Certificates Card */}
+            <Link href="/dashboard/student/certificates">
+              <Card className="border-none shadow-sm hover:shadow-xl transition-all bg-white rounded-2xl overflow-hidden cursor-pointer group h-full relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-500/5 to-transparent rounded-bl-[80px]"></div>
+                <CardContent className="p-6 flex flex-col h-full relative">
+                  <div className="p-4 bg-gradient-to-br from-teal-100 to-teal-50 rounded-2xl group-hover:scale-110 transition-transform shadow-sm">
+                    <Award className="h-7 w-7 text-teal-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-teal-600 transition-colors mt-4">
+                    Certificates
+                  </h3>
+                  <p className="text-sm text-gray-600 flex-1">
+                    Your earned certificates
+                  </p>
                 </CardContent>
               </Card>
             </Link>

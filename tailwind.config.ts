@@ -63,6 +63,8 @@ const config = {
         "light-sky": "#E8F4F8",
         "warm-coral": "#E07A5F",
         "success-green": "#81B29A",
+        "warning-yellow": "#F4A261",
+        "error-red": "#E76F51",
         "dark-text": "#1A1A1A",
         "pure-white": "#FFFFFF",
       },

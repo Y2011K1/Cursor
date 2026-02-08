@@ -7,24 +7,25 @@ export async function POST(request: NextRequest) {
     // Verify admin role
     await requireRole('admin')
 
-    const { studentId, classroomId } = await request.json()
+    const body = await request.json()
+    const studentId = body.studentId
+    const id = body.courseId ?? body.classroomId
 
-    if (!studentId || !classroomId) {
+    if (!studentId || !id) {
       return NextResponse.json(
-        { success: false, error: 'Student ID and Classroom ID are required' },
+        { success: false, error: 'Student ID and Course ID are required' },
         { status: 400 }
       )
     }
 
-    // Call the admin function to remove student from classroom
-    await adminRemoveStudent(studentId, classroomId)
+    await adminRemoveStudent(studentId, id)
 
     return NextResponse.json({
       success: true,
-      message: 'Student removed from classroom successfully'
+      message: 'Student removed from course successfully'
     })
   } catch (error: any) {
-    console.error('Error removing student from classroom:', error)
+    console.error('Error removing student from course:', error)
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to remove student' },
       { status: 500 }

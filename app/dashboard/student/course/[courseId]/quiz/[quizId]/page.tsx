@@ -53,7 +53,7 @@ export default function StudentQuizPage({ params }: QuizPageProps) {
             .eq("id", user.id)
             .single(),
           supabase
-            .from("classrooms")
+            .from("courses")
             .select("id")
             .eq("id", courseId)
             .eq("is_active", true)
@@ -67,7 +67,7 @@ export default function StudentQuizPage({ params }: QuizPageProps) {
             .from("enrollments")
             .select("id")
             .eq("student_id", user.id)
-            .eq("classroom_id", classroomResult.data.id)
+            .eq("course_id", classroomResult.data.id)
             .eq("is_active", true)
             .single()
 
@@ -83,7 +83,7 @@ export default function StudentQuizPage({ params }: QuizPageProps) {
             .from("quizzes")
             .select("*")
             .eq("id", quizId)
-            .eq("classroom_id", courseId)
+            .eq("course_id", courseId)
             .eq("is_published", true)
             .single(),
           supabase

@@ -12,14 +12,14 @@ export async function toggleQuizPublish(quizId: string, isPublished: boolean) {
     .from("quizzes")
     .select(`
       *,
-      classroom:classrooms!inner (
+      course:courses!inner (
         teacher_id
       )
     `)
     .eq("id", quizId)
     .single()
 
-  if (!quiz || (quiz.classroom as any).teacher_id !== profile.id) {
+  if (!quiz || (quiz.course as any).teacher_id !== profile.id) {
     return {
       success: false,
       error: "Unauthorized",
@@ -52,14 +52,14 @@ export async function deleteQuiz(quizId: string) {
     .from("quizzes")
     .select(`
       *,
-      classroom:classrooms!inner (
+      course:courses!inner (
         teacher_id
       )
     `)
     .eq("id", quizId)
     .single()
 
-  if (!quiz || (quiz.classroom as any).teacher_id !== profile.id) {
+  if (!quiz || (quiz.course as any).teacher_id !== profile.id) {
     return {
       success: false,
       error: "Unauthorized",

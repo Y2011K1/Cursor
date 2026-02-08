@@ -87,6 +87,31 @@ export function MobileNav({ userRole, userName }: MobileNavProps) {
                       </a>
                     </>
                   )}
+                  {userRole === "admin" && (
+                    <>
+                      <a
+                        href="/dashboard/admin/teachers"
+                        className="px-4 py-3 rounded-lg hover:bg-light-sky transition-colors text-slate-blue"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Teachers
+                      </a>
+                      <a
+                        href="/dashboard/admin/students"
+                        className="px-4 py-3 rounded-lg hover:bg-light-sky transition-colors text-slate-blue"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Students
+                      </a>
+                      <a
+                        href="/dashboard/admin/landing-page"
+                        className="px-4 py-3 rounded-lg hover:bg-light-sky transition-colors text-slate-blue"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Landing Page
+                      </a>
+                    </>
+                  )}
                   {userRole === "teacher" && (
                     <>
                       <a

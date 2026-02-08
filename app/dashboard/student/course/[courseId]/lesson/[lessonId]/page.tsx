@@ -23,25 +23,22 @@ export default async function StudentLessonPage({ params }: LessonPageProps) {
   const profile = await requireRole("student")
   const supabase = await createClient()
 
-  // Note: courseId parameter is actually classroomId (for backward compatibility with routes)
-  // Get classroom and verify access
-  const { data: classroom } = await supabase
-    .from("classrooms")
+  const { data: course } = await supabase
+    .from("courses")
     .select("id, name")
     .eq("id", courseId)
     .eq("is_active", true)
     .single()
 
-  if (!classroom) {
+  if (!course) {
     notFound()
   }
 
-  // Verify enrollment
   const { data: enrollment } = await supabase
     .from("enrollments")
     .select("id")
     .eq("student_id", profile.id)
-    .eq("classroom_id", classroom.id)
+    .eq("course_id", course.id)
     .eq("is_active", true)
     .single()
 
@@ -49,12 +46,11 @@ export default async function StudentLessonPage({ params }: LessonPageProps) {
     redirect("/dashboard/student")
   }
 
-  // Get lesson (now linked to classroom_id)
   const { data: lesson } = await supabase
     .from("lessons")
     .select("*")
     .eq("id", lessonId)
-    .eq("classroom_id", courseId)
+    .eq("course_id", courseId)
     .eq("is_published", true)
     .single()
 
@@ -62,7 +58,6 @@ export default async function StudentLessonPage({ params }: LessonPageProps) {
     notFound()
   }
 
-  // Get lesson progress
   const { data: progress } = await supabase
     .from("lesson_progress")
     .select("*")
@@ -72,11 +67,10 @@ export default async function StudentLessonPage({ params }: LessonPageProps) {
 
   const isCompleted = progress?.is_completed || false
 
-  // Get all lessons in classroom for navigation
   const { data: allLessons } = await supabase
     .from("lessons")
     .select("id, title, order_index")
-    .eq("classroom_id", courseId)
+    .eq("course_id", courseId)
     .eq("is_published", true)
     .order("order_index", { ascending: true })
 

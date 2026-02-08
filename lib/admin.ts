@@ -80,7 +80,7 @@ export async function adminCreateTeacher(
     return {
       success: true,
       userId,
-      classroomId: setupData?.classroom_id,
+      courseId: setupData?.course_id ?? setupData?.classroom_id,
       message: 'Teacher account created successfully. They can log in with the provided credentials.'
     }
   } catch (error: any) {
@@ -92,14 +92,14 @@ export async function adminCreateTeacher(
 }
 
 /**
- * Admin removes a student from a classroom
+ * Admin removes a student from a course
  */
-export async function adminRemoveStudent(studentId: string, classroomId: string) {
+export async function adminRemoveStudent(studentId: string, courseId: string) {
   const adminClient = getAdminClient()
 
   const { data, error } = await adminClient.rpc('admin_remove_student', {
     student_id_param: studentId,
-    classroom_id_param: classroomId
+    classroom_id_param: courseId
   })
 
   if (error) {
@@ -146,14 +146,14 @@ export async function adminRemoveTeacher(teacherId: string) {
 }
 
 /**
- * Admin manually enrolls a student in a classroom
+ * Admin manually enrolls a student in a course
  */
-export async function adminEnrollStudent(studentId: string, classroomId: string) {
+export async function adminEnrollStudent(studentId: string, courseId: string) {
   const adminClient = getAdminClient()
 
   const { data, error } = await adminClient.rpc('admin_enroll_student', {
     student_id_param: studentId,
-    classroom_id_param: classroomId
+    classroom_id_param: courseId
   })
 
   if (error) {

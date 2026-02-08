@@ -22,7 +22,7 @@ export default async function ExamDetailPage({ params }: ExamDetailPageProps) {
 
     // Get teacher's classroom
     const { data: classroom } = await supabase
-      .from("classrooms")
+      .from("courses")
       .select("id")
       .eq("teacher_id", profile.id)
       .single()
@@ -32,7 +32,7 @@ export default async function ExamDetailPage({ params }: ExamDetailPageProps) {
       .from("exams")
       .select("*")
       .eq("id", examId)
-      .eq("classroom_id", classroomId)
+      .eq("course_id", classroomId)
       .single()
 
     if (!exam) {

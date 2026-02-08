@@ -75,9 +75,9 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
       )
     }
 
-    // Get teacher's classroom and verify ownership
+    // Get teacher's course and verify ownership
     const { data: classroom, error: classroomError } = await supabase
-      .from("classrooms")
+      .from("courses")
       .select("*")
       .eq("id", classroomId)
       .eq("teacher_id", profile.id)
@@ -121,27 +121,27 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
       supabase
         .from("lessons")
         .select("*")
-        .eq("classroom_id", classroom.id)
+        .eq("course_id", classroom.id)
         .order("order_index", { ascending: true }),
       supabase
         .from("quizzes")
         .select("*")
-        .eq("classroom_id", classroom.id)
+        .eq("course_id", classroom.id)
         .order("created_at", { ascending: false }),
       supabase
         .from("exams")
         .select("*")
-        .eq("classroom_id", classroom.id)
+        .eq("course_id", classroom.id)
         .order("created_at", { ascending: false }),
       supabase
         .from("course_materials")
         .select("*")
-        .eq("classroom_id", classroom.id)
+        .eq("course_id", classroom.id)
         .order("order_index", { ascending: true }),
       supabase
         .from("enrollments")
         .select("student_id, profiles(id, full_name)")
-        .eq("classroom_id", classroom.id)
+        .eq("course_id", classroom.id)
         .eq("is_active", true)
     ])
 

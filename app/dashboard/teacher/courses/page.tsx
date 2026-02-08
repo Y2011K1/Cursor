@@ -8,7 +8,7 @@ export default async function TeacherCoursesPage() {
 
   // Get teacher's classroom
   const { data: classroom } = await supabase
-    .from("classrooms")
+    .from("courses")
     .select("id")
     .eq("teacher_id", profile.id)
     .single()

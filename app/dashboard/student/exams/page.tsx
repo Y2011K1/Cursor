@@ -22,7 +22,7 @@ export default async function ExamsPage() {
     .from("enrollments")
     .select(`
       *,
-      classroom:classrooms!inner (
+      course:courses!inner (
         id,
         name,
         subject,
@@ -32,15 +32,14 @@ export default async function ExamsPage() {
     .eq("student_id", profile.id)
     .eq("is_active", true)
   
-  const activeEnrollments = enrollments?.filter((e: any) => e.classroom?.is_active === true) || []
-  const classroomIds = activeEnrollments?.map((e: any) => e.classroom?.id).filter(Boolean) || []
+  const activeEnrollments = enrollments?.filter((e: any) => e.course?.is_active === true) || []
+  const courseIds = activeEnrollments?.map((e: any) => e.course?.id).filter(Boolean) || []
 
-  // Get all exams - RLS will filter by enrollment
   const { data: exams, error: examsError } = await supabase
     .from("exams")
     .select(`
       *,
-      classroom:classrooms!inner (
+      course:courses!inner (
         id,
         name,
         subject
@@ -95,7 +94,7 @@ export default async function ExamsPage() {
               {exams.map((exam: any) => {
                 const submission = submissionMap.get(exam.id)
                 const isCompleted = submission?.is_completed || false
-                const classroom = exam.classroom
+                const course = exam.course
                 const dueDate = exam.due_date ? new Date(exam.due_date) : null
                 const isOverdue = dueDate && dueDate < new Date() && !isCompleted
                 
@@ -106,7 +105,7 @@ export default async function ExamsPage() {
                       isOverdue ? 'border-2 border-warm-coral' : ''
                     }`}
                   >
-                    <Link href={`/dashboard/student/course/${exam.classroom_id}/exam/${exam.id}`}>
+                    <Link href={`/dashboard/student/course/${exam.course_id}/exam/${exam.id}`}>
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between mb-2">
                           <div className="p-2 bg-blue-100 rounded-lg">
@@ -120,7 +119,7 @@ export default async function ExamsPage() {
                           {exam.title}
                         </CardTitle>
                         <CardDescription className="text-xs">
-                          {classroom?.name} • {classroom?.subject}
+                          {course?.name} • {course?.subject}
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-3">
