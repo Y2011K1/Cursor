@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 const navLinks = [
-  { href: "/#", label: "Home" },
-  { href: "/#courses", label: "Courses" },
+  { href: "/", label: "Home" },
+  { href: "/courses", label: "Courses" },
   { href: "/teachers", label: "Teachers" },
   { href: "/blog", label: "Blog" },
-  { href: "/#about", label: "About" },
+  { href: "/about", label: "About" },
 ]
 
 export function LandingHeader() {
@@ -37,7 +37,7 @@ export function LandingHeader() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-deep-teal/90 transition-colors hover:text-deep-teal"
+              className="text-sm font-medium text-deep-teal/90 transition-colors duration-200 hover:text-deep-teal"
             >
               {link.label}
             </Link>
@@ -71,7 +71,7 @@ export function LandingHeader() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded-md px-3 py-2 text-sm font-medium text-deep-teal hover:bg-deep-teal/10"
+                className="rounded-md px-3 py-2 text-sm font-medium text-deep-teal transition-colors duration-200 hover:bg-deep-teal/10"
                 onClick={() => setMobileOpen(false)}
               >
                 {link.label}

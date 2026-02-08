@@ -121,6 +121,18 @@ export default async function TeacherProfilePage({
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-slate-blue">{tp?.bio || "No bio provided."}</p>
+              {tp?.education && (
+                <>
+                  <h3 className="font-semibold text-deep-teal">Education</h3>
+                  <p className="text-slate-blue">{tp.education}</p>
+                </>
+              )}
+              {tp?.birthdate && (
+                <p className="text-slate-blue">
+                  <span className="font-medium text-deep-teal">Birthdate:</span>{" "}
+                  {new Date(tp.birthdate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                </p>
+              )}
               {tp?.teaching_philosophy && (
                 <>
                   <h3 className="font-semibold text-deep-teal">Teaching philosophy</h3>

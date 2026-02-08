@@ -28,12 +28,12 @@ export default async function BlogPostPage({
 
   if (!post) notFound()
 
-  const { data: related } = await supabase
-    .from("blog_posts")
-    .select("id, title, slug")
-    .eq("status", "published")
-    .neq("id", post.id)
-    .limit(3)
+  const [relatedRes, linksRes] = await Promise.all([
+    supabase.from("blog_posts").select("id, title, slug").eq("status", "published").neq("id", post.id).limit(3),
+    supabase.from("blog_post_links").select("id, link_type, title, url").eq("blog_post_id", post.id).order("display_order", { ascending: true }),
+  ])
+  const related = relatedRes.data || []
+  const postLinks = linksRes.data || []
 
   return (
     <div className="min-h-screen bg-light-sky">
@@ -80,7 +80,29 @@ export default async function BlogPostPage({
             dangerouslySetInnerHTML={{ __html: post.content || "" }}
           />
         </article>
-        {related && related.length > 0 && (
+        {postLinks.length > 0 && (
+          <section className="mt-12 pt-8 border-t border-deep-teal/20">
+            <h2 className="text-xl font-bold text-deep-teal mb-4">Related links</h2>
+            <ul className="space-y-2">
+              {postLinks.map((link: any) => (
+                <li key={link.id}>
+                  {link.url.startsWith("http") ? (
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-deep-teal hover:underline">
+                      {link.title}
+                      <span className="text-xs text-slate-500 ml-2 capitalize">({link.link_type})</span>
+                    </a>
+                  ) : (
+                    <Link href={link.url} className="text-deep-teal hover:underline">
+                      {link.title}
+                      <span className="text-xs text-slate-500 ml-2 capitalize">({link.link_type})</span>
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {related.length > 0 && (
           <section className="mt-12 pt-8 border-t border-deep-teal/20">
             <h2 className="text-xl font-bold text-deep-teal mb-4">Related posts</h2>
             <ul className="space-y-2">

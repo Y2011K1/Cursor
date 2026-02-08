@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
 import { BookOpen, FileText, Clock, PlayCircle, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
+import { LeaveCourseButton } from "@/components/leave-course-button"
 
 interface ClassroomPageProps {
   params: Promise<{ classroomId: string }>
@@ -105,9 +106,12 @@ export default async function ClassroomPage({ params }: ClassroomPageProps) {
                   </p>
                 </div>
               </div>
-              <Button variant="outline" asChild>
-                <Link href="/dashboard/student">Back to Dashboard</Link>
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" asChild>
+                  <Link href="/dashboard/student">Back to Dashboard</Link>
+                </Button>
+                <LeaveCourseButton courseId={classroomId} courseName={classroom?.name || "Course"} />
+              </div>
             </div>
             {classroom.description && (
               <p className="text-slate-blue mt-2">{classroom.description}</p>

@@ -141,6 +141,31 @@ export async function deleteSlide(id: string) {
   return { error: null }
 }
 
+export async function reorderSlide(formData: FormData) {
+  const slideId = formData.get("slideId") as string
+  const direction = formData.get("direction") as "up" | "down"
+  if (!slideId || !direction) return { error: null }
+  const supabase = await createClient()
+  const { data: slides } = await supabase
+    .from("homepage_slides")
+    .select("id, display_order")
+    .order("display_order", { ascending: true })
+
+  if (!slides || slides.length < 2) return { error: null }
+  const idx = slides.findIndex((s: any) => s.id === slideId)
+  if (idx < 0) return { error: "Slide not found" }
+  const swapIdx = direction === "up" ? idx - 1 : idx + 1
+  if (swapIdx < 0 || swapIdx >= slides.length) return { error: null }
+
+  const current = slides[idx]
+  const other = slides[swapIdx]
+  await supabase.from("homepage_slides").update({ display_order: other.display_order }).eq("id", current.id)
+  await supabase.from("homepage_slides").update({ display_order: current.display_order }).eq("id", other.id)
+  revalidatePath("/")
+  revalidatePath("/dashboard/admin/landing-page")
+  return { error: null }
+}
+
 export async function createTestimonial(formData: FormData) {
   const supabase = await createClient()
   const student_name = formData.get("student_name") as string

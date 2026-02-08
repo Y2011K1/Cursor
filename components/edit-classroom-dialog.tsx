@@ -28,6 +28,9 @@ const classroomSchema = z.object({
     const num = parseInt(val)
     return !isNaN(num) && num > 0 && num <= 1000
   }, "Max students must be between 1 and 1000"),
+  difficulty_level: z.enum(["beginner", "intermediate", "advanced"]).optional().nullable(),
+  estimated_duration_hours: z.string().optional(),
+  specialization: z.string().optional(),
 })
 
 type ClassroomFormData = z.infer<typeof classroomSchema>
@@ -39,6 +42,9 @@ interface EditClassroomDialogProps {
     description?: string | null
     subject?: string | null
     max_students: number
+    difficulty_level?: string | null
+    estimated_duration_hours?: number | null
+    specialization?: string | null
   }
 }
 
@@ -62,6 +68,9 @@ export function EditClassroomDialog({ classroomId, currentData }: EditClassroomD
       description: currentData.description || "",
       subject: currentData.subject || "",
       max_students: currentData.max_students.toString(),
+      difficulty_level: (currentData.difficulty_level as "beginner" | "intermediate" | "advanced") || undefined,
+      estimated_duration_hours: currentData.estimated_duration_hours != null ? String(currentData.estimated_duration_hours) : "",
+      specialization: currentData.specialization || "",
     },
   })
 
@@ -73,6 +82,9 @@ export function EditClassroomDialog({ classroomId, currentData }: EditClassroomD
         description: currentData.description || "",
         subject: currentData.subject || "",
         max_students: currentData.max_students.toString(),
+        difficulty_level: (currentData.difficulty_level as "beginner" | "intermediate" | "advanced") || undefined,
+        estimated_duration_hours: currentData.estimated_duration_hours != null ? String(currentData.estimated_duration_hours) : "",
+        specialization: currentData.specialization || "",
       })
     }
   }, [open, currentData, reset])
@@ -90,6 +102,9 @@ export function EditClassroomDialog({ classroomId, currentData }: EditClassroomD
           description: data.description || null,
           subject: data.subject,
           max_students: parseInt(data.max_students),
+          difficulty_level: data.difficulty_level || null,
+          estimated_duration_hours: data.estimated_duration_hours ? parseInt(data.estimated_duration_hours, 10) : null,
+          specialization: data.specialization || null,
         })
         .eq("id", classroomId)
 
@@ -188,6 +203,40 @@ export function EditClassroomDialog({ classroomId, currentData }: EditClassroomD
             {errors.max_students && (
               <p className="text-sm text-warm-coral">{errors.max_students.message}</p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="difficulty_level">Difficulty (for student dashboard sorting)</Label>
+            <select
+              id="difficulty_level"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              {...register("difficulty_level")}
+            >
+              <option value="">Not set</option>
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="estimated_duration_hours">Estimated duration (hours)</Label>
+            <Input
+              id="estimated_duration_hours"
+              type="number"
+              min="0"
+              placeholder="e.g. 20"
+              {...register("estimated_duration_hours")}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="specialization">Specialization / tags (optional)</Label>
+            <Input
+              id="specialization"
+              placeholder="e.g. Algebra, Calculus"
+              {...register("specialization")}
+            />
           </div>
 
           <div className="flex justify-end gap-3 pt-4">

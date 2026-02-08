@@ -15,11 +15,12 @@ import {
   createSlide,
   updateSlide,
   deleteSlide,
-  createTestimonial,
+  reorderSlide,
   updateTestimonial,
   deleteTestimonial,
 } from "@/app/dashboard/admin/landing-page/actions"
-import { Megaphone, Image as ImageIcon, FileText, Quote, BarChart3 } from "lucide-react"
+import { Megaphone, Image as ImageIcon, FileText, Quote, BarChart3, ChevronUp, ChevronDown } from "lucide-react"
+import { SlideImageUpload } from "@/components/slide-image-upload"
 
 type TabId = "announcements" | "hero" | "about" | "testimonials" | "stats"
 
@@ -190,11 +191,11 @@ export function LandingPageAdminTabs({
         <Card>
           <CardHeader>
             <CardTitle>Hero Slides</CardTitle>
-            <p className="text-sm text-slate-500">Carousel on the homepage hero. Order by display_order.</p>
+            <p className="text-sm text-slate-500">Carousel on the homepage hero. Upload an image or drop it in the zone. Order by display_order.</p>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-8">
             {slides.map((s: any) => (
-              <div key={s.id} className="rounded-lg border p-4 space-y-3">
+              <div key={s.id} className="rounded-xl border-2 border-deep-teal/10 overflow-hidden bg-white">
                 {editingSlide === s.id ? (
                   <form
                     action={async (fd) => {
@@ -202,105 +203,143 @@ export function LandingPageAdminTabs({
                       if (r.error) showMsg(r.error)
                       else {
                         setEditingSlide(null)
-                        showMsg("Updated.")
+                        showMsg("Slide updated.")
                       }
                     }}
-                    className="space-y-3"
+                    className="p-6 space-y-5"
                   >
-                    <div>
-                      <Label>Title</Label>
-                      <Input name="title" defaultValue={s.title} className="mt-1" />
-                    </div>
-                    <div>
-                      <Label>Description</Label>
-                      <Textarea name="description" defaultValue={s.description || ""} rows={2} className="mt-1" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label>CTA text</Label>
-                        <Input name="cta_text" defaultValue={s.cta_text || ""} className="mt-1" />
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div className="space-y-5">
+                        <div>
+                          <Label>Title</Label>
+                          <Input name="title" defaultValue={s.title} className="mt-1 rounded-xl" />
+                        </div>
+                        <div>
+                          <Label>Description</Label>
+                          <Textarea name="description" defaultValue={s.description || ""} rows={2} className="mt-1 rounded-xl" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label>CTA text</Label>
+                            <Input name="cta_text" defaultValue={s.cta_text || ""} className="mt-1 rounded-xl" />
+                          </div>
+                        <div>
+                          <Label>CTA link (optional)</Label>
+                          <Input name="cta_link" defaultValue={s.cta_link || ""} className="mt-1 rounded-xl" placeholder="/signup" />
+                        </div>
                       </div>
                       <div>
-                        <Label>CTA link</Label>
-                        <Input name="cta_link" defaultValue={s.cta_link || ""} className="mt-1" placeholder="/signup" />
+                        <Label>Display order</Label>
+                          <Input name="display_order" type="number" defaultValue={s.display_order} className="mt-1 w-24 rounded-xl" />
+                        </div>
+                        <label className="flex items-center gap-2">
+                          <input type="checkbox" name="is_active" defaultChecked={s.is_active} />
+                          <span className="text-sm">Active</span>
+                        </label>
+                      </div>
+                      <div>
+                        <Label>Slide image (upload or drop)</Label>
+                        <SlideImageUpload key={s.id} name="image_url" defaultUrl={s.image_url} className="mt-1" />
                       </div>
                     </div>
-                    <div>
-                      <Label>Image URL</Label>
-                      <Input name="image_url" defaultValue={s.image_url || ""} className="mt-1" placeholder="https://..." />
-                    </div>
-                    <div>
-                      <Label>Display order</Label>
-                      <Input name="display_order" type="number" defaultValue={s.display_order} className="mt-1 w-24" />
-                    </div>
-                    <label className="flex items-center gap-2">
-                      <input type="checkbox" name="is_active" defaultChecked={s.is_active} />
-                      <span className="text-sm">Active</span>
-                    </label>
-                    <div className="flex gap-2">
-                      <Button type="submit" size="sm">Save</Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setEditingSlide(null)}>Cancel</Button>
+                    <div className="flex gap-2 pt-2">
+                      <Button type="submit" size="sm" className="rounded-xl">Save changes</Button>
+                      <Button type="button" variant="outline" size="sm" className="rounded-xl" onClick={() => setEditingSlide(null)}>Cancel</Button>
                     </div>
                   </form>
                 ) : (
-                  <>
-                    <div className="flex justify-between items-start">
+                  <div className="flex flex-col sm:flex-row">
+                    <div className="w-full sm:w-56 shrink-0 aspect-video sm:aspect-square bg-deep-teal/10">
+                      {s.image_url ? (
+                        <img src={s.image_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-400">
+                          <ImageIcon className="h-12 w-12" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <div>
-                        <p className="font-medium">{s.title}</p>
-                        <p className="text-sm text-slate-500">Order: {s.display_order} • {s.is_active ? "Active" : "Inactive"}</p>
+                        <p className="font-semibold text-deep-teal">{s.title}</p>
+                        <p className="text-sm text-slate-500 mt-0.5 line-clamp-2">{s.description || "No description"}</p>
+                        <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded-full bg-deep-teal/10 text-deep-teal">
+                          Order: {s.display_order} • {s.is_active ? "Active" : "Inactive"}
+                        </span>
                       </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => setEditingSlide(s.id)}>Edit</Button>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex rounded-xl overflow-hidden border border-deep-teal/20">
+                          <form action={async (fd) => { await reorderSlide(fd); showMsg("Order updated.") }} className="inline">
+                            <input type="hidden" name="slideId" value={s.id} />
+                            <input type="hidden" name="direction" value="up" />
+                            <Button type="submit" size="sm" variant="ghost" className="rounded-none h-8 px-2" title="Move up" aria-label="Move up">
+                              <ChevronUp className="h-4 w-4" />
+                            </Button>
+                          </form>
+                          <form action={async (fd) => { await reorderSlide(fd); showMsg("Order updated.") }} className="inline">
+                            <input type="hidden" name="slideId" value={s.id} />
+                            <input type="hidden" name="direction" value="down" />
+                            <Button type="submit" size="sm" variant="ghost" className="rounded-none h-8 px-2 border-l border-deep-teal/20" title="Move down" aria-label="Move down">
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                          </form>
+                        </div>
+                        <Button size="sm" variant="outline" className="rounded-xl" onClick={() => setEditingSlide(s.id)}>Edit</Button>
                         <form action={async () => { await deleteSlide(s.id) }} className="inline">
-                          <Button type="submit" size="sm" variant="outline" className="text-error-red border-error-red/50">Delete</Button>
+                          <Button type="submit" size="sm" variant="outline" className="rounded-xl text-error-red border-error-red/50">Remove</Button>
                         </form>
                       </div>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             ))}
-            <form
-              action={async (fd) => {
-                const r = await createSlide(fd)
-                if (r.error) showMsg(r.error)
-                else showMsg("Slide created.")
-              }}
-              className="rounded-lg border border-dashed p-4 space-y-3"
-            >
-              <p className="font-medium text-deep-teal">+ New Slide</p>
-              <div>
-                <Label>Title</Label>
-                <Input name="title" placeholder="Welcome to EduPlatform" className="mt-1" />
-              </div>
-              <div>
-                <Label>Description</Label>
-                <Textarea name="description" placeholder="Subtitle or short description" rows={2} className="mt-1" />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label>CTA text</Label>
-                  <Input name="cta_text" placeholder="Get Started" className="mt-1" />
+            <div className="rounded-xl border-2 border-dashed border-deep-teal/30 p-6 bg-deep-teal/5">
+              <p className="font-semibold text-deep-teal mb-4">+ Add new slide</p>
+              <form
+                action={async (fd) => {
+                  const r = await createSlide(fd)
+                  if (r.error) showMsg(r.error)
+                  else showMsg("Slide created.")
+                }}
+                className="space-y-5"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Title</Label>
+                      <Input name="title" placeholder="Welcome to EduPlatform" className="mt-1 rounded-xl" />
+                    </div>
+                    <div>
+                      <Label>Description</Label>
+                      <Textarea name="description" placeholder="Subtitle or short description" rows={2} className="mt-1 rounded-xl" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label>CTA text</Label>
+                        <Input name="cta_text" placeholder="Get Started" className="mt-1 rounded-xl" />
+                      </div>
+                      <div>
+                        <Label>CTA link (optional)</Label>
+                        <Input name="cta_link" placeholder="/signup" className="mt-1 rounded-xl" />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Display order</Label>
+                      <Input name="display_order" type="number" defaultValue={slides.length} className="mt-1 w-24 rounded-xl" />
+                    </div>
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" name="is_active" defaultChecked />
+                      <span className="text-sm">Active</span>
+                    </label>
+                  </div>
+                  <div>
+                    <Label>Slide image (upload or drop)</Label>
+                    <SlideImageUpload name="image_url" className="mt-1" />
+                  </div>
                 </div>
-                <div>
-                  <Label>CTA link</Label>
-                  <Input name="cta_link" placeholder="/signup" className="mt-1" />
-                </div>
-              </div>
-              <div>
-                <Label>Image URL</Label>
-                <Input name="image_url" placeholder="https://images.unsplash.com/..." className="mt-1" />
-              </div>
-              <div>
-                <Label>Display order</Label>
-                <Input name="display_order" type="number" defaultValue={slides.length} className="mt-1 w-24" />
-              </div>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" name="is_active" defaultChecked />
-                <span className="text-sm">Active</span>
-              </label>
-              <Button type="submit" size="sm">Create</Button>
-            </form>
+                <Button type="submit" size="sm" className="rounded-xl">Create slide</Button>
+              </form>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -354,7 +393,7 @@ export function LandingPageAdminTabs({
         <Card>
           <CardHeader>
             <CardTitle>Testimonials</CardTitle>
-            <p className="text-sm text-slate-500">Featured student reviews on the landing page.</p>
+            <p className="text-sm text-slate-500">Only students can add testimonials (after entering a course). Here you can approve, reorder, or remove them.</p>
           </CardHeader>
           <CardContent className="space-y-6">
             {testimonials.map((t: any) => (
@@ -422,41 +461,6 @@ export function LandingPageAdminTabs({
                 )}
               </div>
             ))}
-            <form
-              action={async (fd) => {
-                const r = await createTestimonial(fd)
-                if (r.error) showMsg(r.error)
-                else showMsg("Testimonial created.")
-              }}
-              className="rounded-lg border border-dashed p-4 space-y-3"
-            >
-              <p className="font-medium text-deep-teal">+ New Testimonial</p>
-              <div>
-                <Label>Student name</Label>
-                <Input name="student_name" placeholder="Alex M." className="mt-1" />
-              </div>
-              <div>
-                <Label>Role / Course</Label>
-                <Input name="student_role_or_course" placeholder="Web Development" className="mt-1" />
-              </div>
-              <div>
-                <Label>Rating (1-5)</Label>
-                <Input name="rating" type="number" min={1} max={5} defaultValue={5} className="mt-1 w-20" />
-              </div>
-              <div>
-                <Label>Quote</Label>
-                <Textarea name="quote" placeholder="Structured lessons and clear explanations..." rows={3} className="mt-1" />
-              </div>
-              <div>
-                <Label>Display order</Label>
-                <Input name="display_order" type="number" defaultValue={testimonials.length} className="mt-1 w-24" />
-              </div>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" name="is_active" defaultChecked />
-                <span className="text-sm">Active</span>
-              </label>
-              <Button type="submit" size="sm">Create</Button>
-            </form>
           </CardContent>
         </Card>
       )}

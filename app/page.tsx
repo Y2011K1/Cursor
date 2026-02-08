@@ -165,7 +165,7 @@ export default async function Home() {
                 variant="outline"
                 className="border-2 border-white text-white hover:bg-white/10"
               >
-                <Link href="/#courses">Browse Courses</Link>
+                <Link href="/courses">Browse Courses</Link>
               </Button>
             </div>
             <div className="mt-12 w-full max-w-4xl">
@@ -176,11 +176,11 @@ export default async function Home() {
 
         {/* Stats */}
         <section className="border-b border-deep-teal/10 bg-white px-4 py-12 md:py-16" aria-labelledby="stats-heading">
-          <div className="container mx-auto">
+          <div className="container mx-auto max-w-7xl">
             <h2 id="stats-heading" className="sr-only">
               Platform statistics
             </h2>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
+            <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-8">
               {stats.map((item) => {
                 const Icon = item.icon
                 return (
@@ -202,7 +202,7 @@ export default async function Home() {
 
         {/* About */}
         <section id="about" className="scroll-mt-20 px-4 py-16 md:py-24" aria-labelledby="about-heading">
-          <div className="container mx-auto grid gap-12 md:grid-cols-2 md:items-center">
+          <div className="container mx-auto max-w-7xl grid gap-12 md:grid-cols-2 md:items-center">
             <div>
               <h2 id="about-heading" className="text-3xl font-bold text-deep-teal md:text-4xl">
                 {about?.heading ?? "About EduPlatform"}
@@ -252,14 +252,14 @@ export default async function Home() {
 
         {/* Courses Preview */}
         <section id="courses" className="scroll-mt-20 bg-white px-4 py-16 md:py-24" aria-labelledby="courses-heading">
-          <div className="container mx-auto">
+          <div className="container mx-auto max-w-7xl">
             <h2 id="courses-heading" className="text-3xl font-bold text-deep-teal md:text-4xl">
               Popular Courses
             </h2>
             <p className="mt-2 text-slate-blue">Start with our most-loved courses</p>
             {landingCourses.length > 0 ? (
               <>
-                <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                   {landingCourses.map((course: any) => {
                     const teacher = Array.isArray(course.teacher) ? course.teacher[0] : course.teacher
                     return (
@@ -289,11 +289,6 @@ export default async function Home() {
                     )
                   })}
                 </div>
-                <div className="mt-10 text-center">
-                  <Button asChild size="lg" className="bg-gradient-to-r from-deep-teal to-success-green text-white">
-                    <Link href="/signup">Explore All Courses</Link>
-                  </Button>
-                </div>
               </>
             ) : (
               <div className="mt-10 rounded-xl border border-deep-teal/20 bg-light-sky/50 px-6 py-12 text-center">
@@ -308,14 +303,14 @@ export default async function Home() {
 
         {/* Teachers */}
         <section id="teachers" className="scroll-mt-20 px-4 py-16 md:py-24" aria-labelledby="teachers-heading">
-          <div className="container mx-auto">
+          <div className="container mx-auto max-w-7xl">
             <h2 id="teachers-heading" className="text-3xl font-bold text-deep-teal md:text-4xl">
               Meet Our Expert Instructors
             </h2>
             <p className="mt-2 text-slate-blue">Learn from industry professionals</p>
             {landingTeachers.length > 0 ? (
               <>
-                <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
                   {landingTeachers.map((t: any) => {
                     const name = t.full_name ?? "Instructor"
                     const role = t.course?.name ?? t.teacher_profile?.specializations?.[0] ?? "Instructor"
@@ -324,8 +319,8 @@ export default async function Home() {
                     return (
                       <Card key={t.id} className="text-center transition-all hover:shadow-lg">
                         <CardContent className="pt-6">
-                          <div className="mx-auto">
-                            <Avatar name={name} src={t.teacher_profile?.profile_picture_url} size="xl" className="h-24 w-24 border-4 border-light-sky" />
+                          <div className="mx-auto w-24 h-24 rounded-full overflow-hidden border-4 border-light-sky bg-deep-teal/10 flex items-center justify-center">
+                            <Avatar name={name} src={t.teacher_profile?.profile_picture_url} size="xl" className="h-24 w-24 border-0 object-cover" />
                           </div>
                           <p className="mt-4 font-semibold text-deep-teal">{name}</p>
                           <span className="inline-block rounded-full bg-soft-mint/50 px-3 py-1 text-xs font-medium text-deep-teal">
@@ -365,12 +360,12 @@ export default async function Home() {
 
         {/* Testimonials */}
         <section className="bg-white px-4 py-16 md:py-24" aria-labelledby="testimonials-heading">
-          <div className="container mx-auto">
+          <div className="container mx-auto max-w-7xl">
             <h2 id="testimonials-heading" className="text-3xl font-bold text-deep-teal md:text-4xl">
               What Our Students Say
             </h2>
             {testimonials.length > 0 ? (
-              <div className="mt-10 grid gap-6 md:grid-cols-3">
+              <div className="mt-10 grid gap-8 md:grid-cols-3">
                 {testimonials.map((t: any) => (
                   <Card key={t.id} className="relative overflow-hidden">
                     <Quote className="absolute right-4 top-4 h-10 w-10 text-deep-teal/10" aria-hidden />
@@ -397,13 +392,13 @@ export default async function Home() {
 
         {/* Blog */}
         <section id="blog" className="scroll-mt-20 px-4 py-16 md:py-24" aria-labelledby="blog-heading">
-          <div className="container mx-auto">
+          <div className="container mx-auto max-w-7xl">
             <h2 id="blog-heading" className="text-3xl font-bold text-deep-teal md:text-4xl">
               Latest from Our Blog
             </h2>
             {blogPosts.length > 0 ? (
-              <div className="mt-10 grid gap-6 md:grid-cols-3">
-                {blogPosts.map((post: any) => {
+            <div className="mt-10 grid gap-8 md:grid-cols-3">
+              {blogPosts.map((post: any) => {
                   const category = Array.isArray(post.category) ? post.category[0] : post.category
                   return (
                     <Card key={post.id} className="overflow-hidden transition-all hover:shadow-lg">
@@ -476,7 +471,7 @@ export default async function Home() {
 
         {/* Footer */}
         <footer className="border-t border-deep-teal/10 bg-white px-4 py-12 md:py-16">
-          <div className="container mx-auto grid gap-8 md:grid-cols-4">
+          <div className="container mx-auto max-w-7xl grid gap-8 md:grid-cols-4">
             <div>
               <p className="font-bold text-deep-teal">EduPlatform</p>
               <p className="mt-2 text-sm text-slate-blue">Learn smarter. Learn better.</p>
@@ -484,8 +479,8 @@ export default async function Home() {
             <div>
               <p className="font-semibold text-deep-teal">Quick Links</p>
               <ul className="mt-2 space-y-2 text-sm text-slate-blue">
-                <li><Link href="/#about" className="hover:text-deep-teal">About</Link></li>
-                <li><Link href="/#courses" className="hover:text-deep-teal">Courses</Link></li>
+                <li><Link href="/about" className="hover:text-deep-teal">About</Link></li>
+                <li><Link href="/courses" className="hover:text-deep-teal">Courses</Link></li>
                 <li><Link href="/#teachers" className="hover:text-deep-teal">Teachers</Link></li>
                 <li><Link href="/#blog" className="hover:text-deep-teal">Blog</Link></li>
                 <li><Link href="/login" className="hover:text-deep-teal">Contact</Link></li>

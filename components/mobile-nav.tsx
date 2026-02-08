@@ -110,6 +110,13 @@ export function MobileNav({ userRole, userName }: MobileNavProps) {
                       >
                         Landing Page
                       </a>
+                      <a
+                        href="/dashboard/admin/blog"
+                        className="px-4 py-3 rounded-lg hover:bg-light-sky transition-colors text-slate-blue"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Blog
+                      </a>
                     </>
                   )}
                   {userRole === "teacher" && (

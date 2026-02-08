@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { requireRole } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BookOpen, FileText, Award, Plus, PlayCircle, Video, GraduationCap, File, TrendingUp, Trophy } from "lucide-react"
+import { BookOpen, FileText, Award, Plus, PlayCircle, Video, GraduationCap, File, TrendingUp, Trophy, Quote } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
@@ -67,7 +67,7 @@ export default async function StudentDashboardPage() {
             <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl max-w-2xl mx-auto bg-gradient-to-br from-white to-blue-50/50">
               <CardContent className="p-8 text-center">
                 <p className="text-slate-blue mb-6">
-                  Browse available courses and join one to start learning.
+                  Browse available courses and join one to start learning. Only published courses appear here—if you were enrolled in a course but don’t see it, the teacher may not have published it yet.
                 </p>
                 <Button size="lg" className="bg-deep-teal hover:bg-deep-teal/90 text-white px-8 rounded-xl h-12 shadow-sm hover:shadow transition-all duration-300 font-medium" asChild>
                   <Link href="/dashboard/student/browse-courses">
@@ -308,7 +308,7 @@ export default async function StudentDashboardPage() {
             <CardHeader>
               <CardTitle className="text-xl font-bold text-deep-teal flex items-center gap-2">
                 <Trophy className="h-6 w-6" />
-                Student Level: {ranking.icon} {ranking.rank}
+                Overall progress
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -597,6 +597,24 @@ export default async function StudentDashboardPage() {
                   </h3>
                   <p className="text-sm text-gray-600 flex-1">
                     Your earned certificates
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Leave Testimonial Card */}
+            <Link href="/dashboard/student/leave-testimonial">
+              <Card className="border-none shadow-sm hover:shadow-xl transition-all bg-white rounded-2xl overflow-hidden cursor-pointer group h-full relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-success-green/10 to-transparent rounded-bl-[80px]"></div>
+                <CardContent className="p-6 flex flex-col h-full relative">
+                  <div className="p-4 bg-gradient-to-br from-success-green/20 to-success-green/5 rounded-2xl group-hover:scale-110 transition-transform shadow-sm">
+                    <Quote className="h-7 w-7 text-success-green" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-success-green transition-colors mt-4">
+                    Leave a testimonial
+                  </h3>
+                  <p className="text-sm text-gray-600 flex-1">
+                    Share your experience (students only)
                   </p>
                 </CardContent>
               </Card>

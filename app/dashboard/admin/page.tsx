@@ -3,17 +3,11 @@ import { requireRole } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, GraduationCap, BookOpen, BarChart3, TrendingUp, CheckCircle2, Award, User, File, Trophy, FileText, Layout } from "lucide-react"
+import { Users, GraduationCap, BookOpen, BarChart3, TrendingUp, CheckCircle2, Award, User, File, Trophy, FileText, Layout, Newspaper } from "lucide-react"
 import { Navigation } from "@/components/navigation"
 import Link from "next/link"
 import { unstable_noStore as noStore } from "next/cache"
-import { calculateRank, calculateTotalPoints } from "@/lib/ranking"
-import nextDynamic from "next/dynamic"
-
-// Lazy load ProgressBarDialog
-const ProgressBarDialog = nextDynamic(() => import("@/components/progress-bar-dialog").then(mod => ({ default: mod.ProgressBarDialog })), {
-  loading: () => null,
-})
+import { calculateTotalPoints } from "@/lib/ranking"
 
 // Force dynamic rendering to always fetch fresh data
 export const dynamic = 'force-dynamic'
@@ -62,56 +56,6 @@ export default async function AdminDashboardPage() {
   const totalCompleted = completedLessons + completedQuizzes + completedExams
   const overallProgress = totalContent > 0 ? Math.round((totalCompleted / totalContent) * 100) : 0
 
-  // Calculate average scores
-  const [quizScoresResult, examScoresResult] = await Promise.all([
-    supabase
-      .from("quiz_submissions")
-      .select("score, total_points")
-      .eq("is_completed", true)
-      .not("score", "is", null)
-      .not("total_points", "is", null),
-    supabase
-      .from("exam_submissions")
-      .select("score, total_points")
-      .eq("is_completed", true)
-      .not("score", "is", null)
-      .not("total_points", "is", null),
-  ])
-
-  const quizScores = quizScoresResult.data || []
-  const examScores = examScoresResult.data || []
-  
-  // Calculate average quiz score
-  const avgQuizScore = quizScores.length > 0
-    ? Math.round(
-        quizScores.reduce((sum, s) => {
-          const percentage = s.total_points > 0 ? ((s.score || 0) / s.total_points) * 100 : 0
-          return sum + percentage
-        }, 0) / quizScores.length
-      )
-    : 0
-  
-  // Calculate average exam score
-  const avgExamScore = examScores.length > 0
-    ? Math.round(
-        examScores.reduce((sum, s) => {
-          const percentage = s.total_points > 0 ? ((s.score || 0) / s.total_points) * 100 : 0
-          return sum + percentage
-        }, 0) / examScores.length
-      )
-    : 0
-
-  // Calculate overall average score
-  const allScores = [...quizScores, ...examScores]
-  const overallAvgScore = allScores.length > 0
-    ? Math.round(
-        allScores.reduce((sum, s) => {
-          const percentage = s.total_points > 0 ? ((s.score || 0) / s.total_points) * 100 : 0
-          return sum + percentage
-        }, 0) / allScores.length
-      )
-    : 0
-
   // Get individual student progress
   const { data: students } = await supabase
     .from("profiles")
@@ -121,27 +65,60 @@ export default async function AdminDashboardPage() {
 
   const studentIds = students?.map((s) => s.id) || []
 
-  // Get progress for each student (with material access)
+  // Active enrollments (student_id, course_id, course name) for per-course progress
+  const { data: activeEnrollments } = await supabase
+    .from("enrollments")
+    .select("student_id, course_id, course:courses(id, name)")
+    .eq("is_active", true)
+    .in("student_id", studentIds.length > 0 ? studentIds : ["00000000-0000-0000-0000-000000000000"])
+
+  // Published content per course (for totals and mapping progress to course)
+  const [lessonsByCourseResult, quizzesByCourseResult, examsByCourseResult] = await Promise.all([
+    supabase.from("lessons").select("id, course_id").eq("is_published", true),
+    supabase.from("quizzes").select("id, course_id").eq("is_published", true),
+    supabase.from("exams").select("id, course_id").eq("is_published", true),
+  ])
+  const lessonsByCourse = lessonsByCourseResult.data || []
+  const quizzesByCourse = quizzesByCourseResult.data || []
+  const examsByCourse = examsByCourseResult.data || []
+
+  const lessonIdToCourseId = new Map<string, string>()
+  const quizIdToCourseId = new Map<string, string>()
+  const examIdToCourseId = new Map<string, string>()
+  lessonsByCourse.forEach((l: { id: string; course_id: string }) => lessonIdToCourseId.set(l.id, l.course_id))
+  quizzesByCourse.forEach((q: { id: string; course_id: string }) => quizIdToCourseId.set(q.id, q.course_id))
+  examsByCourse.forEach((e: { id: string; course_id: string }) => examIdToCourseId.set(e.id, e.course_id))
+
+  const courseIdToTotals = new Map<string, { lessons: number; quizzes: number; exams: number }>()
+  for (const cid of new Set([...lessonIdToCourseId.values(), ...quizIdToCourseId.values(), ...examIdToCourseId.values()])) {
+    courseIdToTotals.set(cid, {
+      lessons: lessonsByCourse.filter((l: { course_id: string }) => l.course_id === cid).length,
+      quizzes: quizzesByCourse.filter((q: { course_id: string }) => q.course_id === cid).length,
+      exams: examsByCourse.filter((e: { course_id: string }) => e.course_id === cid).length,
+    })
+  }
+
+  // Get progress rows with lesson/quiz/exam ids so we can attribute to course
   const materialIds = materialsResult.data?.map((m: any) => m.id) || []
   const [studentLessonProgress, studentQuizSubmissions, studentExamSubmissions, studentMaterialAccess] = await Promise.all([
     studentIds.length > 0
       ? supabase
           .from("lesson_progress")
-          .select("student_id, is_completed")
+          .select("student_id, lesson_id")
           .in("student_id", studentIds)
           .eq("is_completed", true)
       : Promise.resolve({ data: [], error: null }),
     studentIds.length > 0
       ? supabase
           .from("quiz_submissions")
-          .select("student_id, score, total_points, is_completed")
+          .select("student_id, quiz_id, score, total_points")
           .in("student_id", studentIds)
           .eq("is_completed", true)
       : Promise.resolve({ data: [], error: null }),
     studentIds.length > 0
       ? supabase
           .from("exam_submissions")
-          .select("student_id, score, total_points, is_completed")
+          .select("student_id, exam_id, score, total_points")
           .in("student_id", studentIds)
           .eq("is_completed", true)
       : Promise.resolve({ data: [], error: null }),
@@ -154,9 +131,23 @@ export default async function AdminDashboardPage() {
       : Promise.resolve({ data: [], error: null }),
   ])
 
-  // Calculate individual student progress with ranking
+  type CourseProgress = {
+    courseId: string
+    courseName: string
+    lessonsCompleted: number
+    lessonsTotal: number
+    assignmentsCompleted: number
+    assignmentsTotal: number
+    examsCompleted: number
+    examsTotal: number
+    progressPct: number
+    avgScore: number
+  }
+
+  // Per-course progress for each student (only active enrollments)
   const studentProgressMap = new Map<string, {
     name: string
+    courses: CourseProgress[]
     lessonsCompleted: number
     assignmentsCompleted: number
     examsCompleted: number
@@ -165,53 +156,94 @@ export default async function AdminDashboardPage() {
     avgScore: number
     totalProgress: number
     totalPoints: number
-    rank: ReturnType<typeof calculateRank>
   }>()
 
   students?.forEach((student) => {
-    const studentLessons = (studentLessonProgress.data || []).filter((p) => p.student_id === student.id)
-    const studentQuizzes = (studentQuizSubmissions.data || []).filter((s) => s.student_id === student.id)
-    const studentExams = (studentExamSubmissions.data || []).filter((s) => s.student_id === student.id)
-    const studentMaterials = (studentMaterialAccess.data || []).filter((m) => m.student_id === student.id)
+    const studentLessons = (studentLessonProgress.data || []).filter((p: { student_id: string }) => p.student_id === student.id)
+    const studentQuizzes = (studentQuizSubmissions.data || []).filter((s: { student_id: string }) => s.student_id === student.id)
+    const studentExams = (studentExamSubmissions.data || []).filter((s: { student_id: string }) => s.student_id === student.id)
+    const studentMaterials = (studentMaterialAccess.data || []).filter((m: { student_id: string }) => m.student_id === student.id)
 
     const lessonsCompleted = studentLessons.length
     const assignmentsCompleted = studentQuizzes.length
     const examsCompleted = studentExams.length
     const materialsCompleted = studentMaterials.length
 
-    // Calculate points (assignments and exams are 2 points each)
-    const completedAssignments = assignmentsCompleted
-    const completedExamsCount = examsCompleted
     const totalPoints = calculateTotalPoints({
       completedLessons: lessonsCompleted,
       completedMaterials: materialsCompleted,
-      completedAssignments,
-      completedExams: completedExamsCount,
+      completedAssignments: assignmentsCompleted,
+      completedExams: examsCompleted,
     })
-
-    // Calculate ranking
-    const rank = calculateRank(totalPoints)
-
-    // Calculate average score for this student
     const studentScores = [...studentQuizzes, ...studentExams]
     const avgScore = studentScores.length > 0
       ? Math.round(
-          studentScores.reduce((sum, s) => {
+          studentScores.reduce((sum: number, s: { score: number | null; total_points: number | null }) => {
             const percentage = s.total_points > 0 ? ((s.score || 0) / s.total_points) * 100 : 0
             return sum + percentage
           }, 0) / studentScores.length
         )
       : 0
-
-    // Calculate total progress percentage
     const studentTotalContent = totalLessons + totalQuizzes + totalExams
     const studentTotalCompleted = lessonsCompleted + assignmentsCompleted + examsCompleted
-    const totalProgress = studentTotalContent > 0
-      ? Math.round((studentTotalCompleted / studentTotalContent) * 100)
-      : 0
+    const totalProgress = studentTotalContent > 0 ? Math.round((studentTotalCompleted / studentTotalContent) * 100) : 0
+
+    // Build per-course progress for this student (only active enrollments)
+    const enrollmentsForStudent = (activeEnrollments || []).filter(
+      (e: { student_id: string }) => e.student_id === student.id
+    ) as { student_id: string; course_id: string; course: { id: string; name: string } | null }[]
+    const courses: CourseProgress[] = enrollmentsForStudent.map((e) => {
+      const courseId = e.course_id
+      const courseName = (e.course as { id: string; name: string } | null)?.name ?? "Course"
+      const totals = courseIdToTotals.get(courseId) ?? { lessons: 0, quizzes: 0, exams: 0 }
+      const lessonsTotal = totals.lessons
+      const assignmentsTotal = totals.quizzes
+      const examsTotal = totals.exams
+
+      const lessonsDone = studentLessons.filter(
+        (p: { lesson_id: string }) => lessonIdToCourseId.get(p.lesson_id) === courseId
+      ).length
+      const quizzesDone = studentQuizzes.filter(
+        (s: { quiz_id: string }) => quizIdToCourseId.get(s.quiz_id) === courseId
+      ).length
+      const examsDone = studentExams.filter(
+        (s: { exam_id: string }) => examIdToCourseId.get(s.exam_id) === courseId
+      ).length
+
+      const totalInCourse = lessonsTotal + assignmentsTotal + examsTotal
+      const completedInCourse = lessonsDone + quizzesDone + examsDone
+      const progressPct = totalInCourse > 0 ? Math.round((completedInCourse / totalInCourse) * 100) : 0
+
+      const courseScores = [
+        ...studentQuizzes.filter((s: { quiz_id: string }) => quizIdToCourseId.get(s.quiz_id) === courseId),
+        ...studentExams.filter((s: { exam_id: string }) => examIdToCourseId.get(s.exam_id) === courseId),
+      ]
+      const courseAvgScore = courseScores.length > 0
+        ? Math.round(
+            courseScores.reduce((sum: number, s: { score: number | null; total_points: number | null }) => {
+              const pct = s.total_points > 0 ? ((s.score || 0) / s.total_points) * 100 : 0
+              return sum + pct
+            }, 0) / courseScores.length
+          )
+        : 0
+
+      return {
+        courseId,
+        courseName,
+        lessonsCompleted: lessonsDone,
+        lessonsTotal,
+        assignmentsCompleted: quizzesDone,
+        assignmentsTotal,
+        examsCompleted: examsDone,
+        examsTotal,
+        progressPct,
+        avgScore: courseAvgScore,
+      }
+    })
 
     studentProgressMap.set(student.id, {
       name: student.full_name,
+      courses,
       lessonsCompleted,
       assignmentsCompleted,
       examsCompleted,
@@ -220,14 +252,13 @@ export default async function AdminDashboardPage() {
       avgScore,
       totalProgress,
       totalPoints,
-      rank,
     })
   })
 
-  // Convert to array and sort by total points (descending) for ranking display
-  const studentProgressList = Array.from(studentProgressMap.values()).sort(
-    (a, b) => b.totalPoints - a.totalPoints
-  )
+  // List: one entry per student, sorted by total points; each entry has .courses for per-course bars
+  const studentProgressList = Array.from(studentProgressMap.entries())
+    .map(([studentId, v]) => ({ studentId, ...v }))
+    .sort((a, b) => b.totalPoints - a.totalPoints)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
@@ -462,7 +493,7 @@ export default async function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Quick Actions and Performance Metrics */}
+          {/* Quick Actions */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl bg-gradient-to-br from-white to-blue-50/50">
               <CardHeader>
@@ -493,58 +524,12 @@ export default async function AdminDashboardPage() {
                     Landing Page
                   </Button>
                 </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl bg-gradient-to-br from-white to-blue-50/50">
-              <CardHeader>
-                <CardTitle className="text-xl font-bold text-deep-teal flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Performance Metrics
-                </CardTitle>
-                <CardDescription className="text-sm text-slate-600">
-                  Key performance indicators
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="p-4 bg-gradient-to-br from-light-sky to-white rounded-xl">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-slate-600">Average Quiz Score</span>
-                      <span className="font-bold text-lg text-deep-teal">{avgQuizScore}%</span>
-                    </div>
-                    <div className="flex justify-center">
-                      <div className="w-full max-w-[140px] bg-gray-200 rounded-full h-1.5">
-                        <div 
-                          className="bg-gradient-to-r from-green-500 to-green-600 h-1.5 rounded-full transition-all duration-700 ease-out" 
-                          style={{ width: `${avgQuizScore}%` }} 
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-gradient-to-br from-light-sky to-white rounded-xl">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-slate-600">Average Exam Score</span>
-                      <span className="font-bold text-lg text-deep-teal">{avgExamScore}%</span>
-                    </div>
-                    <div className="flex justify-center">
-                      <div className="w-full max-w-[140px] bg-gray-200 rounded-full h-1.5">
-                        <div 
-                          className="bg-gradient-to-r from-purple-500 to-purple-600 h-1.5 rounded-full transition-all duration-700 ease-out" 
-                          style={{ width: `${avgExamScore}%` }} 
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  {overallAvgScore > 0 && (
-                    <div className="pt-3 border-t border-gray-200">
-                      <div className="text-xs font-medium text-slate-600 mb-1">Overall Average Score</div>
-                      <div className="text-lg font-bold text-deep-teal">
-                        {overallAvgScore}%
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <Link href="/dashboard/admin/blog" className="block">
+                  <Button className="w-full bg-white border-deep-teal/30 text-deep-teal hover:bg-light-sky rounded-xl h-12 shadow-sm hover:shadow transition-all duration-300 font-medium" variant="outline">
+                    <Newspaper className="h-5 w-5 mr-2" />
+                    Blog
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </div>
@@ -565,16 +550,13 @@ export default async function AdminDashboardPage() {
                 <div className="space-y-4 max-h-[600px] overflow-y-auto">
                   {studentProgressList.map((student, index) => (
                     <div
-                      key={index}
+                      key={student.studentId}
                       className="p-6 bg-gradient-to-br from-white to-gray-50/50 rounded-2xl border hover:border-deep-teal/30 hover:shadow-lg transition-all duration-300"
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-3">
                             <h3 className="text-lg font-bold text-deep-teal">{student.name}</h3>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${student.rank.bgColor} ${student.rank.color}`}>
-                              {student.rank.icon} {student.rank.rank}
-                            </span>
                           </div>
                           <div className="flex items-center gap-4">
                             <div className="text-center">
@@ -593,17 +575,47 @@ export default async function AdminDashboardPage() {
                           </div>
                         </div>
                       </div>
-                      {student.rank.nextRankPoints && (() => {
+                      {/* Per-course progress bars (only active enrollments; left courses are excluded) */}
+                      {student.courses.length > 0 ? (
+                        <div className="space-y-3 pt-4 border-t border-gray-200">
+                          <div className="text-sm font-semibold text-deep-teal">Progress by course</div>
+                          {student.courses.map((course) => (
+                            <div key={course.courseId} className="flex flex-col gap-1">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="font-medium text-slate-700">{course.courseName}</span>
+                                <span className="text-slate-600">
+                                  {course.progressPct}%
+                                  {course.avgScore > 0 && ` · Avg ${course.avgScore}%`}
+                                </span>
+                              </div>
+                              <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                                <div
+                                  className="bg-gradient-to-r from-deep-teal to-success-green h-2 rounded-full transition-all duration-700 ease-out"
+                                  style={{ width: `${course.progressPct}%` }}
+                                />
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                {course.lessonsCompleted}/{course.lessonsTotal} lessons · {course.assignmentsCompleted}/{course.assignmentsTotal} quizzes · {course.examsCompleted}/{course.examsTotal} exams
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="pt-4 border-t border-gray-200 text-sm text-slate-500">
+                          No active course enrollments
+                        </div>
+                      )}
+                      {(student as { rank?: { nextRankPoints?: number } }).rank?.nextRankPoints ? (() => {
                         const currentThreshold = student.rank.rank === "Bronze" ? 0 : student.rank.rank === "Silver" ? 50 : student.rank.rank === "Gold" ? 150 : 300
-                        const pointsNeeded = student.rank.nextRankPoints - student.totalPoints
+                        const pointsNeeded = false - student.totalPoints
                         const pointsInCurrentRank = student.totalPoints - currentThreshold
-                        const pointsForNextRank = student.rank.nextRankPoints - currentThreshold
-                        const nextRankName = student.rank.nextRankPoints === 50 ? "Silver" : student.rank.nextRankPoints === 150 ? "Gold" : "Platinum"
-                        const nextRankIcon = student.rank.nextRankPoints === 50 ? "🥈" : student.rank.nextRankPoints === 150 ? "🥇" : "💎"
+                        const pointsForNextRank = false - currentThreshold
+                        const nextRankName = false === 50 ? "Silver" : false === 150 ? "Gold" : "Platinum"
+                        const nextRankIcon = false === 50 ? "🥈" : false === 150 ? "🥇" : "💎"
                         const progressPercent = Math.min(100, Math.max(0, (pointsInCurrentRank / pointsForNextRank) * 100))
                         
                         return (
-                          <div className="space-y-2 pt-4 border-t border-gray-200">
+                          <div className="space-y-2 pt-4 border-t border-gray-200 mt-4">
                             <div className="flex items-center justify-between">
                               <div className="text-sm font-semibold text-deep-teal">
                                 Next Level: {nextRankName}
@@ -620,7 +632,6 @@ export default async function AdminDashboardPage() {
                             >
                               <div className="flex items-center gap-3 text-sm text-slate-600">
                                 <span className="font-medium min-w-[60px]">{student.rank.rank}</span>
-                                {/* SHORTER PROGRESS BAR with max-w-[240px] */}
                                 <div className="flex-1 max-w-[240px] relative group">
                                   <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
                                     <div
