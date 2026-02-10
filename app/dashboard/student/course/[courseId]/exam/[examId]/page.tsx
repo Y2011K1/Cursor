@@ -345,7 +345,7 @@ export default function StudentExamPage({ params }: ExamPageProps) {
               <CardContent>
                 <div className="space-y-4">
                   <div className="text-2xl font-bold text-deep-teal">
-                    Score: {submission.score || 0} / {submission.total_points || 0} points
+                    Score: {submission.score ?? 0} / {submission.total_points ?? 0}
                   </div>
                   <div className="text-slate-blue">
                     Percentage: {submission.total_points
@@ -391,7 +391,7 @@ export default function StudentExamPage({ params }: ExamPageProps) {
                         {isCorrect ? (
                           <span className="text-xs px-2 py-1 rounded-full bg-success-green/20 text-success-green flex items-center gap-1 w-fit">
                             <CheckCircle2 className="h-3 w-3" />
-                            Correct ({question.points} points)
+                            Correct (+{question.points})
                           </span>
                         ) : (
                           <span className="text-xs px-2 py-1 rounded-full bg-warm-coral/20 text-warm-coral flex items-center gap-1 w-fit">

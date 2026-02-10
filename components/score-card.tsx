@@ -42,7 +42,7 @@ export function ScoreCard({
             {percentage.toFixed(0)}%
           </span>
           <span className="text-slate-500">
-            {score}/{totalPoints} pts
+            {score}/{totalPoints}
           </span>
         </div>
         {status && (

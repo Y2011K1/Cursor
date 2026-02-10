@@ -59,12 +59,9 @@ export function ProgressBarDialog({
               <div>
                 <div className="font-semibold text-deep-teal">Video Lectures</div>
                 <div className="text-sm text-slate-blue">
-                  {lessonsCompleted} {lessonsCompleted === 1 ? 'lecture' : 'lectures'} completed
+                  {lessonsCompleted} {lessonsCompleted === 1 ? "lecture" : "lectures"} completed
                 </div>
               </div>
-            </div>
-            <div className="text-lg font-bold text-deep-teal">
-              {lessonsCompleted * 5} pts
             </div>
           </div>
 
@@ -76,12 +73,9 @@ export function ProgressBarDialog({
               <div>
                 <div className="font-semibold text-deep-teal">Course Materials</div>
                 <div className="text-sm text-slate-blue">
-                  {materialsCompleted} {materialsCompleted === 1 ? 'material' : 'materials'} accessed
+                  {materialsCompleted} {materialsCompleted === 1 ? "material" : "materials"} accessed
                 </div>
               </div>
-            </div>
-            <div className="text-lg font-bold text-deep-teal">
-              {materialsCompleted * 5} pts
             </div>
           </div>
 
@@ -93,12 +87,9 @@ export function ProgressBarDialog({
               <div>
                 <div className="font-semibold text-deep-teal">Assignments</div>
                 <div className="text-sm text-slate-blue">
-                  {assignmentsCompleted} {assignmentsCompleted === 1 ? 'assignment' : 'assignments'} completed
+                  {assignmentsCompleted} {assignmentsCompleted === 1 ? "assignment" : "assignments"} completed
                 </div>
               </div>
-            </div>
-            <div className="text-lg font-bold text-deep-teal">
-              {assignmentsCompleted * 5} pts
             </div>
           </div>
 
@@ -110,20 +101,8 @@ export function ProgressBarDialog({
               <div>
                 <div className="font-semibold text-deep-teal">Exams</div>
                 <div className="text-sm text-slate-blue">
-                  {examsCompleted} {examsCompleted === 1 ? 'exam' : 'exams'} completed
+                  {examsCompleted} {examsCompleted === 1 ? "exam" : "exams"} completed
                 </div>
-              </div>
-            </div>
-            <div className="text-lg font-bold text-deep-teal">
-              {examsCompleted * 5} pts
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="text-base font-semibold text-deep-teal">Total Points</div>
-              <div className="text-2xl font-bold text-deep-teal">
-                {(lessonsCompleted + materialsCompleted + assignmentsCompleted + examsCompleted) * 5} pts
               </div>
             </div>
           </div>
