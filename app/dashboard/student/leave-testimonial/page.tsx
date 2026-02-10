@@ -15,14 +15,21 @@ export default async function LeaveTestimonialPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: enrollments } = await supabase
-    .from("enrollments")
-    .select("id")
-    .eq("student_id", user.id)
-    .eq("is_active", true)
-    .limit(1)
+  const [
+    { data: enrollments },
+    { data: lessonProgress },
+    { data: quizSubmissions },
+    { data: examSubmissions },
+  ] = await Promise.all([
+    supabase.from("enrollments").select("id").eq("student_id", user.id).eq("is_active", true).limit(1),
+    supabase.from("lesson_progress").select("id").eq("student_id", user.id).eq("is_completed", true).limit(1),
+    supabase.from("quiz_submissions").select("id").eq("student_id", user.id).eq("is_completed", true).limit(1),
+    supabase.from("exam_submissions").select("id").eq("student_id", user.id).eq("is_completed", true).limit(1),
+  ])
 
-  const canLeaveTestimonial = enrollments && enrollments.length > 0
+  const hasEnrollment = (enrollments?.length ?? 0) > 0
+  const hasFinishedContent = (lessonProgress?.length ?? 0) > 0 || (quizSubmissions?.length ?? 0) > 0 || (examSubmissions?.length ?? 0) > 0
+  const canLeaveTestimonial = hasEnrollment && hasFinishedContent
 
   return (
     <div className="min-h-screen bg-light-sky">
@@ -39,17 +46,24 @@ export default async function LeaveTestimonialPage() {
                 Leave a testimonial
               </CardTitle>
               <CardDescription>
-                Only students who have joined a course can submit a testimonial. It may be shown on the landing page after approval.
+                After finishing at least one lesson, assignment, or exam you can submit a testimonial. It may be shown on the landing page after approval.
               </CardDescription>
             </CardHeader>
             <CardContent>
               {canLeaveTestimonial ? (
                 <LeaveTestimonialForm />
-              ) : (
+              ) : !hasEnrollment ? (
                 <p className="text-slate-600">
                   You need to be enrolled in at least one course before you can leave a testimonial.{" "}
                   <Link href="/dashboard/student/browse-courses" className="text-deep-teal font-medium hover:underline">
                     Browse courses
+                  </Link>
+                </p>
+              ) : (
+                <p className="text-slate-600">
+                  Complete at least one lesson, assignment, or exam to leave a testimonial.{" "}
+                  <Link href="/dashboard/student" className="text-deep-teal font-medium hover:underline">
+                    Back to dashboard
                   </Link>
                 </p>
               )}

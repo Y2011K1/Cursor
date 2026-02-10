@@ -23,7 +23,7 @@ export async function createTestimonialAsStudent(formData: FormData) {
     student_role_or_course,
     rating,
     quote,
-    is_active: false,
+    is_active: true,
     display_order: 0,
   })
 

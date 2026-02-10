@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { GraduationCap, Mail, Github, Linkedin } from "lucide-react"
 
 export function Footer() {
@@ -23,21 +22,9 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">Quick Links</h3>
             <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/dashboard/student" className="text-white/80 hover:text-white transition-colors">
-                  Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard/student/browse" className="text-white/80 hover:text-white transition-colors">
-                  Browse Classrooms
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard/settings" className="text-white/80 hover:text-white transition-colors">
-                  Settings
-                </Link>
-              </li>
+              <li><span className="text-white/80 cursor-default">Dashboard</span></li>
+              <li><span className="text-white/80 cursor-default">Browse Classrooms</span></li>
+              <li><span className="text-white/80 cursor-default">Settings</span></li>
             </ul>
           </div>
 
@@ -51,20 +38,12 @@ export function Footer() {
               </li>
             </ul>
             <div className="flex items-center gap-4 pt-2">
-              <a
-                href="#"
-                className="text-white/80 hover:text-white transition-colors"
-                aria-label="GitHub"
-              >
+              <span className="text-white/80 cursor-default" aria-label="GitHub">
                 <Github className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
-                className="text-white/80 hover:text-white transition-colors"
-                aria-label="LinkedIn"
-              >
+              </span>
+              <span className="text-white/80 cursor-default" aria-label="LinkedIn">
                 <Linkedin className="h-5 w-5" />
-              </a>
+              </span>
             </div>
           </div>
         </div>

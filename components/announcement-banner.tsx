@@ -53,15 +53,15 @@ export function AnnouncementBanner() {
 
   return (
     <div
-      className="relative flex items-center justify-center gap-4 px-4 py-2 text-sm text-center"
+      className="relative flex items-center justify-start gap-4 px-4 py-2 text-sm text-left"
       style={{
         backgroundColor: announcement.background_color || "#3b82f6",
         color: announcement.text_color || "#ffffff",
       }}
     >
-      <span className="font-semibold">{announcement.title}</span>
-      <span className="hidden sm:inline">—</span>
-      <span className="flex-1">{announcement.content}</span>
+      <span className="font-semibold shrink-0">{announcement.title}</span>
+      <span className="hidden sm:inline shrink-0">—</span>
+      <span className="flex-1 min-w-0">{announcement.content}</span>
       <button
         type="button"
         onClick={handleDismiss}

@@ -81,14 +81,14 @@ export function BlogPostLinksEditor({
             <span className="font-medium text-deep-teal">{link.title}</span>
             <span className="text-sm text-slate-500 truncate max-w-[200px]">{link.url}</span>
             <div className="flex rounded-xl overflow-hidden border border-deep-teal/20 ml-auto">
-              <form action={reorderBlogPostLink} className="inline">
+              <form action={async (fd) => { await reorderBlogPostLink(fd) }} className="inline">
                 <input type="hidden" name="linkId" value={link.id} />
                 <input type="hidden" name="direction" value="up" />
                 <Button type="submit" size="sm" variant="ghost" className="rounded-none h-8 px-2" title="Move up" aria-label="Move up">
                   <ChevronUp className="h-4 w-4" />
                 </Button>
               </form>
-              <form action={reorderBlogPostLink} className="inline">
+              <form action={async (fd) => { await reorderBlogPostLink(fd) }} className="inline">
                 <input type="hidden" name="linkId" value={link.id} />
                 <input type="hidden" name="direction" value="down" />
                 <Button type="submit" size="sm" variant="ghost" className="rounded-none h-8 px-2 border-l border-deep-teal/20" title="Move down" aria-label="Move down">
@@ -96,7 +96,7 @@ export function BlogPostLinksEditor({
                 </Button>
               </form>
             </div>
-            <form action={async () => await deleteBlogPostLink(link.id)} className="inline">
+            <form action={async () => { await deleteBlogPostLink(link.id) }} className="inline">
               <Button type="submit" size="sm" variant="outline" className="rounded-xl text-error-red border-error-red/50">
                 Remove
               </Button>

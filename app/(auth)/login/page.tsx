@@ -72,14 +72,7 @@ export default function LoginPage() {
         return
       }
 
-      console.log("✅ Session confirmed. Redirecting in 500ms...")
-      
-      // Wait for cookies to be set
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      console.log("🔄 Executing redirect NOW")
-      
-      // Force redirect - use assign which is more reliable
+      // Redirect immediately; middleware will send to correct role page
       window.location.assign("/dashboard")
       
     } catch (err: any) {

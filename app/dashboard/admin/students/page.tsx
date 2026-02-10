@@ -1,5 +1,4 @@
 import { requireRole } from "@/lib/auth"
-import { createClient } from "@/lib/supabase/server"
 import { getAdminClient } from "@/lib/admin"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Navigation } from "@/components/navigation"
@@ -12,10 +11,10 @@ export const revalidate = 0
 
 export default async function StudentsPage() {
   const profile = await requireRole("admin")
-  const supabase = await createClient()
   const adminClient = getAdminClient()
 
-  const { data: students, error } = await supabase
+  // Use admin client to bypass RLS so we reliably get all students and enrollments
+  const { data: students, error } = await adminClient
     .from("profiles")
     .select(`
       id,
@@ -24,12 +23,12 @@ export default async function StudentsPage() {
       enrollments:enrollments(
         id,
         is_active,
-        created_at,
+        enrolled_at,
         course:courses(
           id,
           name,
           subject,
-          teacher:profiles!courses_teacher_id_fkey(full_name)
+          teacher:profiles!classrooms_teacher_id_fkey(full_name)
         )
       )
     `)
@@ -37,7 +36,7 @@ export default async function StudentsPage() {
     .order("full_name", { ascending: true })
 
   if (error) {
-    console.error("Error fetching students:", error)
+    console.error("Error fetching students:", error.message ?? error, error.code, error.details)
   }
 
   // Fetch emails using admin client
@@ -189,7 +188,7 @@ export default async function StudentsPage() {
                                     Teacher: {enrollment.course?.teacher?.full_name || 'Unknown'}
                                   </div>
                                   <div className="text-xs text-gray-400 mt-1">
-                                    Enrolled: {new Date(enrollment.created_at).toLocaleDateString()}
+                                    Enrolled: {new Date(enrollment.enrolled_at).toLocaleDateString()}
                                   </div>
                                 </div>
                                 

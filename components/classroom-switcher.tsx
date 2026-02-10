@@ -92,7 +92,7 @@ export function ClassroomSwitcher({ currentClassroomId, classrooms }: ClassroomS
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link
-            href="/dashboard/student/browse"
+            href="/dashboard/student/browse-courses"
             className="flex items-center gap-2 text-deep-teal font-medium"
           >
             <BookOpen className="h-4 w-4" />

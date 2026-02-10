@@ -10,6 +10,7 @@ import { AddLessonDialog } from "@/components/add-lesson-dialog"
 import { PublishCourseButton } from "@/components/publish-course-button"
 import { AddQuizDialog } from "@/components/add-quiz-dialog"
 import { AddExamDialog } from "@/components/add-exam-dialog"
+import { EditCourseDialog } from "@/components/edit-course-dialog"
 
 interface CourseDetailPageProps {
   params: Promise<{ courseId: string }>
@@ -20,19 +21,12 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
   const profile = await requireRole("teacher")
   const supabase = await createClient()
 
-  // Get teacher's classroom
-  const { data: classroom } = await supabase
-    .from("courses")
-    .select("id")
-    .eq("teacher_id", profile.id)
-    .single()
-
-  // Get course and verify it belongs to teacher's classroom
+  // Get course and verify it belongs to teacher
   const { data: course } = await supabase
     .from("courses")
     .select("*")
     .eq("id", courseId)
-    .eq("course_id", classroom?.id)
+    .eq("teacher_id", profile.id)
     .single()
 
   if (!course) {
@@ -104,7 +98,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                       <BookOpen className="h-5 w-5" />
                       Lessons
                     </CardTitle>
-                    <AddLessonDialog classroomId={classroom?.id || ""} />
+                    <AddLessonDialog classroomId={course.id} />
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -166,7 +160,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                       <FileText className="h-5 w-5" />
                       Quizzes (Assignments)
                     </CardTitle>
-                    <AddQuizDialog classroomId={classroom?.id || ""} />
+                    <AddQuizDialog classroomId={course.id} />
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -224,7 +218,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                       <GraduationCap className="h-5 w-5" />
                       Exams
                     </CardTitle>
-                    <AddExamDialog classroomId={classroom?.id || ""} />
+                    <AddExamDialog classroomId={course.id} />
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -289,16 +283,14 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                     courseId={course.id}
                     isPublished={course.is_published}
                   />
-                  <Button 
-                    className="w-full" 
-                    variant="outline"
-                    onClick={() => {
-                      // TODO: Implement course edit functionality
-                      alert("Course editing will be available soon")
+                  <EditCourseDialog
+                    courseId={course.id}
+                    currentData={{
+                      name: course.name || course.title || "",
+                      description: course.description,
+                      thumbnail_url: course.thumbnail_url,
                     }}
-                  >
-                    Edit Course Details
-                  </Button>
+                  />
                 </CardContent>
               </Card>
 

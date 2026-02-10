@@ -110,12 +110,22 @@ export async function adminRemoveStudent(studentId: string, courseId: string) {
 }
 
 /**
- * Admin completely removes a student account (deletes profile and auth user)
+ * Admin completely removes a student account (deletes profile and auth user).
+ * Adds email to blocklist so the same email cannot sign up again.
  */
 export async function adminRemoveStudentAccount(studentId: string) {
   const adminClient = getAdminClient()
 
-  // Delete the auth user (this will cascade delete the profile due to ON DELETE CASCADE)
+  // Get email before deletion so we can block it from future signups
+  const { data: userData } = await adminClient.auth.admin.getUserById(studentId)
+  const email = userData?.user?.email
+  if (email) {
+    await adminClient
+      .from("removed_student_emails")
+      .upsert({ email, removed_at: new Date().toISOString() }, { onConflict: "email" })
+  }
+
+  // Delete the auth user (cascades to profile and enrollments etc.)
   const { error: deleteError } = await adminClient.auth.admin.deleteUser(studentId)
 
   if (deleteError) {

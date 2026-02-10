@@ -94,17 +94,6 @@ export default async function TeachersPage() {
                       </div>
 
                       <div className="flex gap-2">
-                        {teacher.course && (
-                          <Button
-                            variant="outline"
-                            className="flex-1"
-                            asChild
-                          >
-                            <Link href={`/dashboard/admin/courses/${teacher.course.id}`}>
-                              View Course
-                            </Link>
-                          </Button>
-                        )}
                         <DeleteTeacherButton
                           teacherId={teacher.id}
                           teacherName={teacher.full_name}

@@ -69,10 +69,10 @@ export function DeleteStudentButton({ studentId, studentName }: DeleteStudentBut
               <p className="font-semibold text-gray-900">This will:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Delete the student account completely</li>
-                <li>Remove from ALL classrooms</li>
+                <li>Remove from ALL courses and delete all related data</li>
                 <li>Delete all quiz and exam submissions</li>
                 <li>Delete all lesson progress</li>
-                <li>Delete all course material access records</li>
+                <li>Block this email from signing up again</li>
               </ul>
               <p className="text-orange-600 font-medium mt-3">
                 💡 To remove from just one classroom, use "Remove from Class" instead

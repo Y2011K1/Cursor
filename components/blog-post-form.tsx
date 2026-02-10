@@ -1,11 +1,12 @@
 "use client"
 
-import { useActionState, useEffect } from "react"
+import { useActionState, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Upload, Loader2, X, Image as ImageIcon } from "lucide-react"
 
 type Category = { id: string; name: string; slug: string }
 type Post = {
@@ -29,14 +30,82 @@ export function BlogPostForm({
   post?: Post | null
 }) {
   const router = useRouter()
+  const [isUploading, setIsUploading] = useState(false)
+  const [imagePreview, setImagePreview] = useState<string | null>(post?.featured_image_url || null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [imageUrl, setImageUrl] = useState(post?.featured_image_url || "")
+  const [isDragging, setIsDragging] = useState(false)
+  
   const [state, formAction] = useActionState(
     async (_: unknown, fd: FormData) => {
+      // Set the image URL in form data if we have one
+      if (imageUrl) {
+        fd.set("featured_image_url", imageUrl)
+      }
       const result = await action(fd)
-      if (result.error) return { error: result.error, success: false }
+      if (result?.error) return { error: result.error, success: false }
       return { error: null, success: true }
     },
-    null as { error: string; success?: boolean } | null
+    { error: null, success: false }
   )
+
+  const handleFileUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Please select an image file")
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("Image size must be less than 5MB")
+      return
+    }
+
+    setIsUploading(true)
+    setUploadError(null)
+
+    try {
+      const formData = new FormData()
+      formData.set("file", file)
+      formData.set("folder", "blog")
+      const res = await fetch("/api/upload/image", { method: "POST", body: formData })
+      const data = await res.json()
+      if (!res.ok) {
+        setUploadError(data.error || "Failed to upload image")
+        return
+      }
+      setImageUrl(data.url)
+      setImagePreview(data.url)
+    } catch (err: unknown) {
+      setUploadError(err instanceof Error ? err.message : "Failed to upload image")
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      handleFileUpload(file)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (file) {
+      handleFileUpload(file)
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = () => {
+    setIsDragging(false)
+  }
 
   useEffect(() => {
     if (state?.success) {
@@ -104,15 +173,90 @@ export function BlogPostForm({
           />
         </div>
         <div>
-          <Label htmlFor="featured_image_url">Featured image URL (optional)</Label>
-          <Input
-            id="featured_image_url"
-            name="featured_image_url"
-            type="url"
-            defaultValue={post?.featured_image_url ?? ""}
-            className="mt-1 rounded-xl"
-            placeholder="https://..."
-          />
+          <Label htmlFor="featured_image_url">Featured Image</Label>
+          <div className="space-y-3 mt-1">
+            {imagePreview && (
+              <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-deep-teal/20">
+                <img
+                  src={imagePreview}
+                  alt="Blog preview"
+                  className="w-full h-full object-cover"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  className="absolute top-2 right-2"
+                  onClick={() => {
+                    setImageUrl("")
+                    setImagePreview(null)
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+            <div
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
+                isDragging
+                  ? "border-deep-teal bg-deep-teal/5"
+                  : "border-gray-300 hover:border-deep-teal/50"
+              }`}
+            >
+              <ImageIcon className="h-12 w-12 mx-auto mb-2 text-deep-teal/50" />
+              <p className="text-sm text-slate-600 mb-2">
+                {isDragging ? "Drop image here" : "Drag and drop an image here, or"}
+              </p>
+              <label className="inline-block">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  disabled={isUploading}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-xl"
+                  disabled={isUploading}
+                  asChild
+                >
+                  <span>
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Choose File
+                      </>
+                    )}
+                  </span>
+                </Button>
+              </label>
+            </div>
+            {uploadError && (
+              <p className="text-sm text-red-600">{uploadError}</p>
+            )}
+            <Input
+              id="featured_image_url"
+              name="featured_image_url"
+              type="url"
+              value={imageUrl}
+              onChange={(e) => {
+                setImageUrl(e.target.value)
+                setImagePreview(e.target.value || null)
+              }}
+              className="rounded-xl"
+              placeholder="Or enter image URL directly"
+            />
+          </div>
         </div>
         <div>
           <Label htmlFor="category_id">Category</Label>

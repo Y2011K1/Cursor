@@ -8,6 +8,11 @@ import { Navigation } from "@/components/navigation"
 import Link from "next/link"
 import { unstable_noStore as noStore } from "next/cache"
 import { calculateTotalPoints } from "@/lib/ranking"
+import nextDynamic from "next/dynamic"
+
+const ProgressBarDialog = nextDynamic(() => import("@/components/progress-bar-dialog").then(mod => ({ default: mod.ProgressBarDialog })), {
+  loading: () => null,
+})
 
 // Force dynamic rendering to always fetch fresh data
 export const dynamic = 'force-dynamic'
@@ -179,7 +184,8 @@ export default async function AdminDashboardPage() {
     const avgScore = studentScores.length > 0
       ? Math.round(
           studentScores.reduce((sum: number, s: { score: number | null; total_points: number | null }) => {
-            const percentage = s.total_points > 0 ? ((s.score || 0) / s.total_points) * 100 : 0
+            const totalPts = s.total_points ?? 0
+            const percentage = totalPts > 0 ? ((s.score ?? 0) / totalPts) * 100 : 0
             return sum + percentage
           }, 0) / studentScores.length
         )
@@ -191,7 +197,7 @@ export default async function AdminDashboardPage() {
     // Build per-course progress for this student (only active enrollments)
     const enrollmentsForStudent = (activeEnrollments || []).filter(
       (e: { student_id: string }) => e.student_id === student.id
-    ) as { student_id: string; course_id: string; course: { id: string; name: string } | null }[]
+    ) as unknown as { student_id: string; course_id: string; course: { id: string; name: string } | null }[]
     const courses: CourseProgress[] = enrollmentsForStudent.map((e) => {
       const courseId = e.course_id
       const courseName = (e.course as { id: string; name: string } | null)?.name ?? "Course"
@@ -221,7 +227,8 @@ export default async function AdminDashboardPage() {
       const courseAvgScore = courseScores.length > 0
         ? Math.round(
             courseScores.reduce((sum: number, s: { score: number | null; total_points: number | null }) => {
-              const pct = s.total_points > 0 ? ((s.score || 0) / s.total_points) * 100 : 0
+              const totalPts = s.total_points ?? 0
+              const pct = totalPts > 0 ? ((s.score ?? 0) / totalPts) * 100 : 0
               return sum + pct
             }, 0) / courseScores.length
           )
@@ -605,13 +612,16 @@ export default async function AdminDashboardPage() {
                           No active course enrollments
                         </div>
                       )}
-                      {(student as { rank?: { nextRankPoints?: number } }).rank?.nextRankPoints ? (() => {
-                        const currentThreshold = student.rank.rank === "Bronze" ? 0 : student.rank.rank === "Silver" ? 50 : student.rank.rank === "Gold" ? 150 : 300
-                        const pointsNeeded = false - student.totalPoints
+                      {(() => {
+                        const studentRank = (student as { rank?: { nextRankPoints?: number; rank?: string } }).rank
+                        if (!studentRank?.nextRankPoints) return null
+                        
+                        const currentThreshold = studentRank.rank === "Bronze" ? 0 : studentRank.rank === "Silver" ? 50 : studentRank.rank === "Gold" ? 150 : 300
+                        const pointsNeeded = studentRank.nextRankPoints - student.totalPoints
                         const pointsInCurrentRank = student.totalPoints - currentThreshold
-                        const pointsForNextRank = false - currentThreshold
-                        const nextRankName = false === 50 ? "Silver" : false === 150 ? "Gold" : "Platinum"
-                        const nextRankIcon = false === 50 ? "🥈" : false === 150 ? "🥇" : "💎"
+                        const pointsForNextRank = studentRank.nextRankPoints - currentThreshold
+                        const nextRankName = studentRank.nextRankPoints === 50 ? "Silver" : studentRank.nextRankPoints === 150 ? "Gold" : "Platinum"
+                        const nextRankIcon = studentRank.nextRankPoints === 50 ? "🥈" : studentRank.nextRankPoints === 150 ? "🥇" : "💎"
                         const progressPercent = Math.min(100, Math.max(0, (pointsInCurrentRank / pointsForNextRank) * 100))
                         
                         return (
@@ -631,7 +641,7 @@ export default async function AdminDashboardPage() {
                               examsCompleted={student.examsCompleted}
                             >
                               <div className="flex items-center gap-3 text-sm text-slate-600">
-                                <span className="font-medium min-w-[60px]">{student.rank.rank}</span>
+                                <span className="font-medium min-w-[60px]">{studentRank.rank}</span>
                                 <div className="flex-1 max-w-[240px] relative group">
                                   <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
                                     <div

@@ -96,15 +96,16 @@ export function AddTeacherDialog() {
           Add Teacher
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[640px] max-h-[90vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="shrink-0 px-6 pt-6 pb-2">
           <DialogTitle className="text-deep-teal">Add New Teacher</DialogTitle>
           <DialogDescription>
             Create a teacher account with email and password. The teacher can log in immediately.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0">
+          <div className="overflow-y-auto px-6 py-2 space-y-4 max-h-[calc(90vh-12rem)]">
           {error && (
             <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-700 text-sm">
               {error}
@@ -208,8 +209,9 @@ export function AddTeacherDialog() {
               <p className="text-sm text-warm-coral">{errors.maxStudents.message}</p>
             )}
           </div>
+          </div>
 
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end gap-3 px-6 py-4 border-t bg-slate-50/50 shrink-0">
             <Button
               type="button"
               variant="outline"

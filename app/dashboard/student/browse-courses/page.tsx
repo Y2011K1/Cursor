@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
+import { Footer } from "@/components/footer"
 import { EnrollButton } from "@/components/enroll-button"
 import { Users, GraduationCap, Star, Clock, Award } from "lucide-react"
 import Link from "next/link"
@@ -31,7 +32,7 @@ export default async function BrowseCoursesPage({
     .from("courses")
     .select(`
       *,
-      teacher:profiles!courses_teacher_id_fkey (
+      teacher:profiles!classrooms_teacher_id_fkey (
         id,
         full_name
       )
@@ -57,7 +58,13 @@ export default async function BrowseCoursesPage({
       query = query.order("created_at", { ascending: false })
   }
 
-  const { data: courses } = await query
+  const { data: courses, error: coursesError } = await query
+
+  if (coursesError) {
+    console.error("Browse courses query error:", coursesError)
+  }
+
+  const courseList = courses ?? []
 
   const { data: enrollments } = await supabase
     .from("enrollments")
@@ -66,7 +73,7 @@ export default async function BrowseCoursesPage({
     .eq("is_active", true)
 
   const enrolledSet = new Set(enrollments?.map((e) => e.course_id) || [])
-  const courseIds = courses?.map((c) => c.id) || []
+  const courseIds = courseList.map((c) => c.id)
   const { data: counts } = courseIds.length > 0
     ? await supabase
         .from("enrollments")
@@ -80,9 +87,9 @@ export default async function BrowseCoursesPage({
   })
 
   return (
-    <div className="min-h-screen bg-light-sky">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex flex-col">
       <Navigation userRole="student" userName={profile.full_name} />
-      <div className="p-6 md:p-8">
+      <div className="p-6 md:p-8 flex-1">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
           <aside className="w-full md:w-64 shrink-0">
             <BrowseCoursesFilters searchParams={params} />
@@ -91,7 +98,7 @@ export default async function BrowseCoursesPage({
             <h1 className="text-3xl font-bold text-deep-teal mb-2">Browse Courses</h1>
             <p className="text-slate-blue mb-6">Filter and sort to find your next course</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {(courses || []).map((course: any) => {
+              {courseList.map((course: any) => {
                 const isEnrolled = enrolledSet.has(course.id)
                 const current = countsMap.get(course.id) || 0
                 const isFull = current >= (course.max_students ?? 50)
@@ -178,16 +185,19 @@ export default async function BrowseCoursesPage({
                 )
               })}
             </div>
-            {(!courses || courses.length === 0) && (
+            {courseList.length === 0 && (
               <Card className="border-0 shadow-md">
                 <CardContent className="py-12 text-center text-slate-blue">
-                  No courses match your filters. Try adjusting filters or check back later.
+                  {coursesError
+                    ? "Could not load courses. Please refresh the page or try again later."
+                    : "No courses match your filters. Try adjusting filters or check back later—teachers can add courses from the admin dashboard."}
                 </CardContent>
               </Card>
             )}
           </main>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Edit, Loader2 } from "lucide-react"
+import { Edit, Loader2, Upload, X, Image as ImageIcon } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 
 const classroomSchema = z.object({
@@ -31,6 +31,7 @@ const classroomSchema = z.object({
   difficulty_level: z.enum(["beginner", "intermediate", "advanced"]).optional().nullable(),
   estimated_duration_hours: z.string().optional(),
   specialization: z.string().optional(),
+  thumbnail_url: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 })
 
 type ClassroomFormData = z.infer<typeof classroomSchema>
@@ -45,14 +46,18 @@ interface EditClassroomDialogProps {
     difficulty_level?: string | null
     estimated_duration_hours?: number | null
     specialization?: string | null
+    thumbnail_url?: string | null
   }
 }
 
 export function EditClassroomDialog({ classroomId, currentData }: EditClassroomDialogProps) {
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [imagePreview, setImagePreview] = useState<string | null>(currentData.thumbnail_url || null)
+  const [isDragging, setIsDragging] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -61,6 +66,8 @@ export function EditClassroomDialog({ classroomId, currentData }: EditClassroomD
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
+    setValue,
   } = useForm<ClassroomFormData>({
     resolver: zodResolver(classroomSchema),
     defaultValues: {
@@ -71,8 +78,15 @@ export function EditClassroomDialog({ classroomId, currentData }: EditClassroomD
       difficulty_level: (currentData.difficulty_level as "beginner" | "intermediate" | "advanced") || undefined,
       estimated_duration_hours: currentData.estimated_duration_hours != null ? String(currentData.estimated_duration_hours) : "",
       specialization: currentData.specialization || "",
+      thumbnail_url: currentData.thumbnail_url || "",
     },
   })
+
+  const thumbnailUrl = watch("thumbnail_url")
+
+  useEffect(() => {
+    setImagePreview(thumbnailUrl || null)
+  }, [thumbnailUrl])
 
   // Reset form when dialog opens with current data
   useEffect(() => {
@@ -85,9 +99,62 @@ export function EditClassroomDialog({ classroomId, currentData }: EditClassroomD
         difficulty_level: (currentData.difficulty_level as "beginner" | "intermediate" | "advanced") || undefined,
         estimated_duration_hours: currentData.estimated_duration_hours != null ? String(currentData.estimated_duration_hours) : "",
         specialization: currentData.specialization || "",
+        thumbnail_url: currentData.thumbnail_url || "",
       })
+      setImagePreview(currentData.thumbnail_url || null)
     }
   }, [open, currentData, reset])
+
+  const handleFileUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file")
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image size must be less than 5MB")
+      return
+    }
+
+    setIsUploading(true)
+    setError(null)
+
+    try {
+      const formData = new FormData()
+      formData.set("file", file)
+      formData.set("folder", "course-thumbnail")
+      const res = await fetch("/api/upload/image", { method: "POST", body: formData })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || "Failed to upload image")
+        return
+      }
+      setValue("thumbnail_url", data.url)
+      setImagePreview(data.url)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to upload image")
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (file) {
+      handleFileUpload(file)
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = () => {
+    setIsDragging(false)
+  }
 
   const onSubmit = async (data: ClassroomFormData) => {
     setIsSubmitting(true)
@@ -105,6 +172,7 @@ export function EditClassroomDialog({ classroomId, currentData }: EditClassroomD
           difficulty_level: data.difficulty_level || null,
           estimated_duration_hours: data.estimated_duration_hours ? parseInt(data.estimated_duration_hours, 10) : null,
           specialization: data.specialization || null,
+          thumbnail_url: data.thumbnail_url || null,
         })
         .eq("id", classroomId)
 
@@ -135,7 +203,7 @@ export function EditClassroomDialog({ classroomId, currentData }: EditClassroomD
           Edit Classroom Details
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-deep-teal">Edit Classroom</DialogTitle>
           <DialogDescription>
@@ -239,6 +307,86 @@ export function EditClassroomDialog({ classroomId, currentData }: EditClassroomD
             />
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="thumbnail_url">Course Image (for landing page)</Label>
+            <div className="space-y-3">
+              {imagePreview && (
+                <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-deep-teal/20">
+                  <img
+                    src={imagePreview}
+                    alt="Course preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2"
+                    onClick={() => {
+                      setValue("thumbnail_url", "")
+                      setImagePreview(null)
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              <div
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                  isDragging
+                    ? "border-deep-teal bg-deep-teal/5"
+                    : "border-gray-300 hover:border-deep-teal/50"
+                }`}
+              >
+                <ImageIcon className="h-12 w-12 mx-auto mb-2 text-deep-teal/50" />
+                <p className="text-sm text-slate-600 mb-2">
+                  {isDragging ? "Drop image here" : "Drag and drop an image here, or"}
+                </p>
+                <label className="inline-block">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) handleFileUpload(file)
+                    }}
+                    className="hidden"
+                    disabled={isUploading}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isUploading}
+                    className="rounded-xl"
+                  >
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Choose File
+                      </>
+                    )}
+                  </Button>
+                </label>
+              </div>
+              <Input
+                id="thumbnail_url"
+                placeholder="Or enter image URL directly"
+                {...register("thumbnail_url")}
+              />
+              {errors.thumbnail_url && (
+                <p className="text-sm text-red-600">{errors.thumbnail_url.message}</p>
+              )}
+            </div>
+          </div>
+
           <div className="flex justify-end gap-3 pt-4">
             <Button
               type="button"
@@ -255,7 +403,7 @@ export function EditClassroomDialog({ classroomId, currentData }: EditClassroomD
             <Button
               type="submit"
               className="bg-deep-teal hover:bg-deep-teal/90"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploading}
             >
               {isSubmitting ? (
                 <>

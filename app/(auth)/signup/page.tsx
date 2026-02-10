@@ -47,14 +47,31 @@ export default function SignupPage() {
     setError(null)
 
     try {
+      const checkRes = await fetch("/api/auth/check-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: data.email }),
+      })
+      let checkJson: { allowed?: boolean } = {}
+      try {
+        checkJson = await checkRes.json()
+      } catch {
+        // Non-JSON response (e.g. error page); allow signup to proceed
+      }
+      if (checkJson.allowed === false) {
+        setError("This email cannot be used to register. If you were previously removed from the program, you cannot re-register with the same email.")
+        setIsLoading(false)
+        return
+      }
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
-          emailRedirectTo: undefined, // No email redirect needed
+          emailRedirectTo: undefined,
           data: {
             full_name: data.fullName,
-            role: "student", // Only students can sign up
+            role: "student",
           },
         },
       })
@@ -67,14 +84,14 @@ export default function SignupPage() {
 
       if (authData.user) {
         setSuccess(true)
-        // Wait for profile to be created, then redirect
         setTimeout(() => {
           setIsLoading(true)
           window.location.href = "/dashboard"
         }, 1500)
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.")
+      const message = err instanceof Error ? err.message : "An unexpected error occurred. Please try again."
+      setError(message)
       setIsLoading(false)
     }
   }

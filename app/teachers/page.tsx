@@ -6,7 +6,7 @@ import { Avatar } from "@/components/ui/avatar"
 import { Star } from "lucide-react"
 import Link from "next/link"
 
-export const revalidate = 60
+export const revalidate = 300
 
 export default async function TeachersPage({
   searchParams,

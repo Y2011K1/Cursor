@@ -65,25 +65,11 @@ export function MobileNav({ userRole, userName }: MobileNavProps) {
                   {userRole === "student" && (
                     <>
                       <a
-                        href="/dashboard/student/video-lectures"
+                        href="/dashboard/student/browse-courses"
                         className="px-4 py-3 rounded-lg hover:bg-light-sky transition-colors text-slate-blue"
                         onClick={() => setIsOpen(false)}
                       >
-                        Video Lectures
-                      </a>
-                      <a
-                        href="/dashboard/student/assignments"
-                        className="px-4 py-3 rounded-lg hover:bg-light-sky transition-colors text-slate-blue"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Assignments
-                      </a>
-                      <a
-                        href="/dashboard/student/exams"
-                        className="px-4 py-3 rounded-lg hover:bg-light-sky transition-colors text-slate-blue"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Exams
+                        Browse Courses
                       </a>
                     </>
                   )}

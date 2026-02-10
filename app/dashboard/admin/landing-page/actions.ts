@@ -1,6 +1,8 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { getAdminClient } from "@/lib/admin"
+import { requireRole } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 
 export async function refreshPlatformStats() {
@@ -142,11 +144,12 @@ export async function deleteSlide(id: string) {
 }
 
 export async function reorderSlide(formData: FormData) {
+  await requireRole("admin")
   const slideId = formData.get("slideId") as string
   const direction = formData.get("direction") as "up" | "down"
   if (!slideId || !direction) return { error: null }
-  const supabase = await createClient()
-  const { data: slides } = await supabase
+  const admin = getAdminClient()
+  const { data: slides } = await admin
     .from("homepage_slides")
     .select("id, display_order")
     .order("display_order", { ascending: true })
@@ -159,8 +162,8 @@ export async function reorderSlide(formData: FormData) {
 
   const current = slides[idx]
   const other = slides[swapIdx]
-  await supabase.from("homepage_slides").update({ display_order: other.display_order }).eq("id", current.id)
-  await supabase.from("homepage_slides").update({ display_order: current.display_order }).eq("id", other.id)
+  await admin.from("homepage_slides").update({ display_order: other.display_order }).eq("id", current.id)
+  await admin.from("homepage_slides").update({ display_order: current.display_order }).eq("id", other.id)
   revalidatePath("/")
   revalidatePath("/dashboard/admin/landing-page")
   return { error: null }
@@ -190,7 +193,8 @@ export async function createTestimonial(formData: FormData) {
 }
 
 export async function updateTestimonial(id: string, formData: FormData) {
-  const supabase = await createClient()
+  await requireRole("admin")
+  const admin = getAdminClient()
   const student_name = formData.get("student_name") as string
   const student_role_or_course = (formData.get("student_role_or_course") as string) || null
   const rating = parseInt((formData.get("rating") as string) || "5", 10)
@@ -198,7 +202,7 @@ export async function updateTestimonial(id: string, formData: FormData) {
   const display_order = parseInt((formData.get("display_order") as string) || "0", 10)
   const is_active = formData.get("is_active") === "on"
 
-  const { error } = await supabase
+  const { error } = await admin
     .from("testimonials")
     .update({
       student_name: student_name || "Student",
@@ -216,8 +220,46 @@ export async function updateTestimonial(id: string, formData: FormData) {
 }
 
 export async function deleteTestimonial(id: string) {
-  const supabase = await createClient()
-  const { error } = await supabase.from("testimonials").delete().eq("id", id)
+  await requireRole("admin")
+  const admin = getAdminClient()
+  const { error } = await admin.from("testimonials").delete().eq("id", id)
+  if (error) return { error: error.message }
+  revalidatePath("/")
+  revalidatePath("/dashboard/admin/landing-page")
+  return { error: null }
+}
+
+export async function reorderTestimonial(formData: FormData) {
+  await requireRole("admin")
+  const testimonialId = formData.get("testimonialId") as string
+  const direction = formData.get("direction") as "up" | "down"
+  if (!testimonialId || !direction) return { error: null }
+  const admin = getAdminClient()
+  const { data: list } = await admin
+    .from("testimonials")
+    .select("id, display_order")
+    .order("display_order", { ascending: true })
+  if (!list || list.length < 2) return { error: null }
+  const idx = list.findIndex((t: { id: string }) => t.id === testimonialId)
+  if (idx < 0) return { error: null }
+  const swapIdx = direction === "up" ? idx - 1 : idx + 1
+  if (swapIdx < 0 || swapIdx >= list.length) return { error: null }
+  const current = list[idx]
+  const other = list[swapIdx]
+  await admin.from("testimonials").update({ display_order: other.display_order }).eq("id", current.id)
+  await admin.from("testimonials").update({ display_order: current.display_order }).eq("id", other.id)
+  revalidatePath("/")
+  revalidatePath("/dashboard/admin/landing-page")
+  return { error: null }
+}
+
+export async function updateSlideOrder(slideId: string, displayOrder: number) {
+  await requireRole("admin")
+  const admin = getAdminClient()
+  const { error } = await admin
+    .from("homepage_slides")
+    .update({ display_order: displayOrder })
+    .eq("id", slideId)
   if (error) return { error: error.message }
   revalidatePath("/")
   revalidatePath("/dashboard/admin/landing-page")

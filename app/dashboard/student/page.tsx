@@ -35,7 +35,7 @@ export default async function StudentDashboardPage() {
         name,
         subject,
         is_active,
-        teacher:profiles!courses_teacher_id_fkey (
+        teacher:profiles!classrooms_teacher_id_fkey (
           id,
           full_name
         )
@@ -262,6 +262,9 @@ export default async function StudentDashboardPage() {
     subject: e.course.subject
   }))
 
+  // Show testimonial option only after student has finished at least one piece of content
+  const hasFinishedContent = completedLessons > 0 || completedQuizzes.length > 0 || completedExams.length > 0
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex flex-col">
       <Navigation userRole="student" userName={profile.full_name} />
@@ -303,86 +306,10 @@ export default async function StudentDashboardPage() {
             </div>
           </div>
 
-          {/* Ranking System Section */}
-          <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl bg-gradient-to-br from-white to-blue-50/50">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-deep-teal flex items-center gap-2">
-                <Trophy className="h-6 w-6" />
-                Overall progress
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <div className="text-2xl font-bold text-deep-teal">{totalPoints} pts</div>
-                    <div className="text-sm font-medium text-slate-600">Total Points</div>
-                  </div>
-                  {avgScore > 0 && (
-                    <div className="flex flex-col items-end">
-                      <div className="text-xl font-bold text-success-green flex items-center gap-1">
-                        <Award className="h-5 w-5" />
-                        {avgScore}%
-                      </div>
-                      <div className="text-sm font-medium text-slate-600">Average Score</div>
-                    </div>
-                  )}
-                </div>
-                {ranking.nextRankPoints && (() => {
-                  const currentThreshold = ranking.rank === "Bronze" ? 0 : ranking.rank === "Silver" ? 50 : ranking.rank === "Gold" ? 150 : 300
-                  const pointsNeeded = ranking.nextRankPoints - totalPoints
-                  const pointsInCurrentRank = totalPoints - currentThreshold
-                  const pointsForNextRank = ranking.nextRankPoints - currentThreshold
-                  const nextRankName = ranking.nextRankPoints === 50 ? "Silver" : ranking.nextRankPoints === 150 ? "Gold" : "Platinum"
-                  const nextRankIcon = ranking.nextRankPoints === 50 ? "🥈" : ranking.nextRankPoints === 150 ? "🥇" : "💎"
-                  const progressPercent = Math.min(100, Math.max(0, (pointsInCurrentRank / pointsForNextRank) * 100))
-                  
-                  return (
-                    <div className="pt-3 border-t border-gray-200 space-y-3">
-                      <div className="text-sm font-semibold text-deep-teal">
-                        Next Level: {nextRankName}
-                      </div>
-                      <ProgressBarDialog
-                        lessonsCompleted={completedLessons}
-                        materialsCompleted={completedMaterials}
-                        assignmentsCompleted={completedAssignments}
-                        examsCompleted={completedExamsCount}
-                      >
-                        <div className="flex items-center gap-2 text-xs text-slate-600">
-                          <span className="font-medium">{ranking.rank}</span>
-                          {/* SHORTER PROGRESS BAR with max-w-sm */}
-                          <div className="flex-1 max-w-sm relative">
-                            <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-                              <div
-                                className="bg-gradient-to-r from-deep-teal to-success-green h-2.5 rounded-full transition-all duration-700 ease-out"
-                                style={{ width: `${progressPercent}%` }}
-                              />
-                            </div>
-                          </div>
-                          <span className="font-medium flex items-center gap-1">
-                            {nextRankName} {nextRankIcon}
-                          </span>
-                        </div>
-                      </ProgressBarDialog>
-                      <div className="text-xs text-slate-600">
-                        {pointsInCurrentRank} / {pointsForNextRank} points
-                      </div>
-                      {pointsNeeded > 0 && (
-                        <div className="text-xs text-slate-600">
-                          {pointsNeeded} more {pointsNeeded === 1 ? 'point' : 'points'} to reach {nextRankName}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })()}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Main Category Cards - Color-Coded */}
+          {/* Main Category Cards - Color-Coded (link to classroom for one consistent experience) */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Video Lectures Card - Orange */}
-            <Link href="/dashboard/student/video-lectures">
+            <Link href={`/dashboard/student/classroom/${courseIds[0]}`}>
               <Card className="border-none shadow-sm hover:shadow-xl transition-all bg-white rounded-2xl overflow-hidden cursor-pointer group h-full relative">
                 {/* Decorative element */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/5 to-transparent rounded-bl-[80px]"></div>
@@ -432,7 +359,7 @@ export default async function StudentDashboardPage() {
             </Link>
 
             {/* Course Materials Card - Purple */}
-            <Link href="/dashboard/student/course-materials">
+            <Link href={`/dashboard/student/classroom/${courseIds[0]}`}>
               <Card className="border-none shadow-sm hover:shadow-xl transition-all bg-white rounded-2xl overflow-hidden cursor-pointer group h-full relative">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/5 to-transparent rounded-bl-[80px]"></div>
                 
@@ -477,7 +404,7 @@ export default async function StudentDashboardPage() {
             </Link>
 
             {/* Exams Card - Blue */}
-            <Link href="/dashboard/student/exams">
+            <Link href={`/dashboard/student/classroom/${courseIds[0]}`}>
               <Card className="border-none shadow-sm hover:shadow-xl transition-all bg-white rounded-2xl overflow-hidden cursor-pointer group h-full relative">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/5 to-transparent rounded-bl-[80px]"></div>
                 
@@ -522,7 +449,7 @@ export default async function StudentDashboardPage() {
             </Link>
 
             {/* Electronic Assignments Card - Green */}
-            <Link href="/dashboard/student/assignments">
+            <Link href={`/dashboard/student/classroom/${courseIds[0]}`}>
               <Card className="border-none shadow-sm hover:shadow-xl transition-all bg-white rounded-2xl overflow-hidden cursor-pointer group h-full relative">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500/5 to-transparent rounded-bl-[80px]"></div>
                 
@@ -566,60 +493,100 @@ export default async function StudentDashboardPage() {
               </Card>
             </Link>
 
-            {/* My Scores Card */}
-            <Link href="/dashboard/student/my-scores">
-              <Card className="border-none shadow-sm hover:shadow-xl transition-all bg-white rounded-2xl overflow-hidden cursor-pointer group h-full relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-500/5 to-transparent rounded-bl-[80px]"></div>
-                <CardContent className="p-6 flex flex-col h-full relative">
-                  <div className="p-4 bg-gradient-to-br from-amber-100 to-amber-50 rounded-2xl group-hover:scale-110 transition-transform shadow-sm">
-                    <Trophy className="h-7 w-7 text-amber-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-amber-600 transition-colors mt-4">
-                    My Scores
-                  </h3>
-                  <p className="text-sm text-gray-600 flex-1">
-                    View quiz and assignment scores
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-
-            {/* Certificates Card */}
-            <Link href="/dashboard/student/certificates">
-              <Card className="border-none shadow-sm hover:shadow-xl transition-all bg-white rounded-2xl overflow-hidden cursor-pointer group h-full relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-500/5 to-transparent rounded-bl-[80px]"></div>
-                <CardContent className="p-6 flex flex-col h-full relative">
-                  <div className="p-4 bg-gradient-to-br from-teal-100 to-teal-50 rounded-2xl group-hover:scale-110 transition-transform shadow-sm">
-                    <Award className="h-7 w-7 text-teal-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-teal-600 transition-colors mt-4">
-                    Certificates
-                  </h3>
-                  <p className="text-sm text-gray-600 flex-1">
-                    Your earned certificates
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-
-            {/* Leave Testimonial Card */}
-            <Link href="/dashboard/student/leave-testimonial">
-              <Card className="border-none shadow-sm hover:shadow-xl transition-all bg-white rounded-2xl overflow-hidden cursor-pointer group h-full relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-success-green/10 to-transparent rounded-bl-[80px]"></div>
-                <CardContent className="p-6 flex flex-col h-full relative">
-                  <div className="p-4 bg-gradient-to-br from-success-green/20 to-success-green/5 rounded-2xl group-hover:scale-110 transition-transform shadow-sm">
-                    <Quote className="h-7 w-7 text-success-green" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-success-green transition-colors mt-4">
-                    Leave a testimonial
-                  </h3>
-                  <p className="text-sm text-gray-600 flex-1">
-                    Share your experience (students only)
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
+            {/* Leave Testimonial Card - only after finishing some content */}
+            {hasFinishedContent && (
+              <Link href="/dashboard/student/leave-testimonial">
+                <Card className="border-none shadow-sm hover:shadow-xl transition-all bg-white rounded-2xl overflow-hidden cursor-pointer group h-full relative">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-success-green/10 to-transparent rounded-bl-[80px]"></div>
+                  <CardContent className="p-6 flex flex-col h-full relative">
+                    <div className="p-4 bg-gradient-to-br from-success-green/20 to-success-green/5 rounded-2xl group-hover:scale-110 transition-transform shadow-sm">
+                      <Quote className="h-7 w-7 text-success-green" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-success-green transition-colors mt-4">
+                      Leave a testimonial
+                    </h3>
+                    <p className="text-sm text-gray-600 flex-1">
+                      Share your experience (students only)
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            )}
           </div>
+
+          {/* Progress bar at bottom */}
+          <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 rounded-xl bg-gradient-to-br from-white to-blue-50/50">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold text-deep-teal flex items-center gap-2">
+                <Trophy className="h-6 w-6" />
+                Overall progress
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <div className="text-2xl font-bold text-deep-teal">{totalPoints} pts</div>
+                    <div className="text-sm font-medium text-slate-600">Total Points</div>
+                  </div>
+                  {avgScore > 0 && (
+                    <div className="flex flex-col items-end">
+                      <div className="text-xl font-bold text-success-green flex items-center gap-1">
+                        <Award className="h-5 w-5" />
+                        {avgScore}%
+                      </div>
+                      <div className="text-sm font-medium text-slate-600">Average Score</div>
+                    </div>
+                  )}
+                </div>
+                {ranking.nextRankPoints && (() => {
+                  const currentThreshold = ranking.rank === "Bronze" ? 0 : ranking.rank === "Silver" ? 50 : ranking.rank === "Gold" ? 150 : 300
+                  const pointsNeeded = ranking.nextRankPoints - totalPoints
+                  const pointsInCurrentRank = totalPoints - currentThreshold
+                  const pointsForNextRank = ranking.nextRankPoints - currentThreshold
+                  const nextRankName = ranking.nextRankPoints === 50 ? "Silver" : ranking.nextRankPoints === 150 ? "Gold" : "Platinum"
+                  const nextRankIcon = ranking.nextRankPoints === 50 ? "🥈" : ranking.nextRankPoints === 150 ? "🥇" : "💎"
+                  const progressPercent = Math.min(100, Math.max(0, (pointsInCurrentRank / pointsForNextRank) * 100))
+                  return (
+                    <div className="pt-3 border-t border-gray-200 space-y-3">
+                      <div className="text-sm font-semibold text-deep-teal">
+                        Next Level: {nextRankName}
+                      </div>
+                      <ProgressBarDialog
+                        lessonsCompleted={completedLessons}
+                        materialsCompleted={completedMaterials}
+                        assignmentsCompleted={completedAssignments}
+                        examsCompleted={completedExamsCount}
+                      >
+                        <div className="flex items-center gap-2 text-xs text-slate-600">
+                          <span className="font-medium">{ranking.rank}</span>
+                          <div className="flex-1 max-w-sm relative">
+                            <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                              <div
+                                className="bg-gradient-to-r from-deep-teal to-success-green h-2.5 rounded-full transition-all duration-700 ease-out"
+                                style={{ width: `${progressPercent}%` }}
+                              />
+                            </div>
+                          </div>
+                          <span className="font-medium flex items-center gap-1">
+                            {nextRankName} {nextRankIcon}
+                          </span>
+                        </div>
+                      </ProgressBarDialog>
+                      <div className="text-xs text-slate-600">
+                        {pointsInCurrentRank} / {pointsForNextRank} points
+                      </div>
+                      {pointsNeeded > 0 && (
+                        <div className="text-xs text-slate-600">
+                          {pointsNeeded} more {pointsNeeded === 1 ? "point" : "points"} to reach {nextRankName}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
       <Footer />

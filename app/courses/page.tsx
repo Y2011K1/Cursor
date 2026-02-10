@@ -3,9 +3,10 @@ import { LandingHeader } from "@/components/landing-header"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowLeft, Star } from "lucide-react"
 
-export const revalidate = 60
+export const revalidate = 300
 export const metadata = {
   title: "Courses – EduPlatform",
   description: "Browse our courses and start learning.",
@@ -16,19 +17,17 @@ export default async function CoursesPage() {
 
   const { data: coursesData } = await supabase
     .from("courses")
-    .select(`
-      id,
-      name,
-      description,
-      rating,
-      total_ratings,
-      teacher:profiles!courses_teacher_id_fkey ( id, full_name )
-    `)
+    .select("id, name, description, rating, total_ratings, teacher_id, thumbnail_url")
     .eq("is_active", true)
     .order("rating", { ascending: false })
-    .limit(24)
 
   const courses = coursesData || []
+  const teacherIds = [...new Set(courses.map((c: any) => c.teacher_id).filter(Boolean))]
+  const teacherNames: Record<string, string> = {}
+  if (teacherIds.length > 0) {
+    const { data: profiles } = await supabase.from("profiles").select("id, full_name").in("id", teacherIds)
+    profiles?.forEach((p: any) => { teacherNames[p.id] = p.full_name ?? "Instructor" })
+  }
 
   return (
     <div className="min-h-screen bg-light-sky">
@@ -54,17 +53,21 @@ export default async function CoursesPage() {
 
         {courses.length > 0 ? (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {courses.map((course: any) => {
-              const teacher = Array.isArray(course.teacher) ? course.teacher[0] : course.teacher
-              return (
+            {courses.map((course: any) => (
                 <Card
                   key={course.id}
                   className="overflow-hidden transition-all duration-300 ease-out hover:shadow-lg hover:shadow-deep-teal/10 border-0 shadow-md"
                 >
-                  <div className="h-40 bg-gradient-to-br from-deep-teal/20 to-soft-mint/40 transition-opacity duration-300" />
+                  {course.thumbnail_url ? (
+                    <div className="relative h-40 w-full">
+                      <Image src={course.thumbnail_url} alt={course.name} fill className="object-cover" sizes="(max-width: 640px) 100vw, 33vw" />
+                    </div>
+                  ) : (
+                    <div className="h-40 bg-gradient-to-br from-deep-teal/20 to-soft-mint/40 transition-opacity duration-300" />
+                  )}
                   <CardContent className="p-5">
                     <p className="font-semibold text-deep-teal">{course.name}</p>
-                    <p className="mt-1 text-sm text-slate-blue">{teacher?.full_name ?? "Instructor"}</p>
+                    <p className="mt-1 text-sm text-slate-blue">{teacherNames[course.teacher_id] ?? "Instructor"}</p>
                     {(course.rating != null && Number(course.rating) > 0) && (
                       <div className="mt-2 flex items-center gap-1 text-sm">
                         <Star className="h-4 w-4 fill-warning-yellow text-warning-yellow" aria-hidden />
@@ -80,19 +83,15 @@ export default async function CoursesPage() {
                       variant="outline"
                       className="mt-4 w-full border-deep-teal text-deep-teal transition-colors duration-200 hover:bg-deep-teal/10"
                     >
-                      <Link href="/signup">View Course</Link>
+                      <Link href={`/courses/${course.id}`}>View Course</Link>
                     </Button>
                   </CardContent>
                 </Card>
-              )
-            })}
+            ))}
           </div>
         ) : (
           <div className="rounded-xl border border-deep-teal/20 bg-white/80 px-6 py-12 text-center transition-all duration-300">
-            <p className="text-slate-blue">No courses yet. Check back soon.</p>
-            <Button asChild size="lg" className="mt-4 bg-deep-teal text-white">
-              <Link href="/signup">Sign up to get notified</Link>
-            </Button>
+            <p className="text-slate-blue">No courses available at the moment. Check back soon.</p>
           </div>
         )}
       </main>

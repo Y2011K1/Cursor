@@ -726,6 +726,7 @@ export default async function ClassroomDetailPage({ params }: ClassroomDetailPag
                       difficulty_level: classroom.difficulty_level ?? null,
                       estimated_duration_hours: classroom.estimated_duration_hours ?? null,
                       specialization: classroom.specialization ?? null,
+                      thumbnail_url: classroom.thumbnail_url ?? null,
                     }}
                   />
                 </CardContent>

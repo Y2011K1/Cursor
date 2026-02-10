@@ -18,7 +18,6 @@ export async function leaveCourse(courseId: string) {
   if (error) return { error: error.message }
   revalidatePath("/dashboard/student")
   revalidatePath("/dashboard/student/browse-courses")
-  revalidatePath("/dashboard/student/browse")
   return { error: null }
 }
 

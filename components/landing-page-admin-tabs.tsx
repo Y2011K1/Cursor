@@ -1,13 +1,13 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import {
-  refreshPlatformStats,
   saveAboutSection,
   createAnnouncement,
   updateAnnouncement,
@@ -15,9 +15,7 @@ import {
   createSlide,
   updateSlide,
   deleteSlide,
-  reorderSlide,
-  updateTestimonial,
-  deleteTestimonial,
+  updateSlideOrder,
 } from "@/app/dashboard/admin/landing-page/actions"
 import { Megaphone, Image as ImageIcon, FileText, Quote, BarChart3, ChevronUp, ChevronDown } from "lucide-react"
 import { SlideImageUpload } from "@/components/slide-image-upload"
@@ -47,11 +45,11 @@ export function LandingPageAdminTabs({
   testimonials,
   platformStats,
 }: LandingPageAdminTabsProps) {
+  const router = useRouter()
   const [tab, setTab] = useState<TabId>("announcements")
   const [message, setMessage] = useState<string | null>(null)
   const [editingAnnouncement, setEditingAnnouncement] = useState<string | null>(null)
   const [editingSlide, setEditingSlide] = useState<string | null>(null)
-  const [editingTestimonial, setEditingTestimonial] = useState<string | null>(null)
 
   const showMsg = (msg: string) => {
     setMessage(msg)
@@ -191,11 +189,18 @@ export function LandingPageAdminTabs({
         <Card>
           <CardHeader>
             <CardTitle>Hero Slides</CardTitle>
-            <p className="text-sm text-slate-500">Carousel on the homepage hero. Upload an image or drop it in the zone. Order by display_order.</p>
+            <p className="text-sm text-slate-500">
+              These images appear <strong>next to the About section</strong> on the homepage. Add slides for a rotating carousel. Set <strong>Order</strong> (1 = first) and click Save to reorder.
+            </p>
           </CardHeader>
-          <CardContent className="space-y-8">
+          <CardContent className="space-y-6">
+            {slides.length === 0 && (
+              <p className="text-sm text-slate-500 rounded-lg border border-dashed border-deep-teal/20 p-4 bg-deep-teal/5">
+                No slides yet. Add one below to show images next to the About section.
+              </p>
+            )}
             {slides.map((s: any) => (
-              <div key={s.id} className="rounded-xl border-2 border-deep-teal/10 overflow-hidden bg-white">
+              <div key={s.id} className="rounded-xl border border-deep-teal/20 overflow-hidden bg-white">
                 {editingSlide === s.id ? (
                   <form
                     action={async (fd) => {
@@ -206,86 +211,96 @@ export function LandingPageAdminTabs({
                         showMsg("Slide updated.")
                       }
                     }}
-                    className="p-6 space-y-5"
+                    className="p-6 space-y-6"
                   >
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <div className="space-y-5">
+                      <div className="space-y-4">
+                        <p className="text-sm font-medium text-deep-teal border-b border-deep-teal/20 pb-1">Content</p>
                         <div>
                           <Label>Title</Label>
-                          <Input name="title" defaultValue={s.title} className="mt-1 rounded-xl" />
+                          <Input name="title" defaultValue={s.title} className="mt-1 rounded-xl" placeholder="Slide title" />
                         </div>
                         <div>
-                          <Label>Description</Label>
+                          <Label>Description (optional)</Label>
                           <Textarea name="description" defaultValue={s.description || ""} rows={2} className="mt-1 rounded-xl" />
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <Label>CTA text</Label>
-                            <Input name="cta_text" defaultValue={s.cta_text || ""} className="mt-1 rounded-xl" />
-                          </div>
                         <div>
-                          <Label>CTA link (optional)</Label>
+                          <Label>Button text (CTA)</Label>
+                          <Input name="cta_text" defaultValue={s.cta_text || ""} className="mt-1 rounded-xl" placeholder="Get Started" />
+                        </div>
+                        <div>
+                          <Label>Button link (optional)</Label>
                           <Input name="cta_link" defaultValue={s.cta_link || ""} className="mt-1 rounded-xl" placeholder="/signup" />
                         </div>
                       </div>
-                      <div>
-                        <Label>Display order</Label>
-                          <Input name="display_order" type="number" defaultValue={s.display_order} className="mt-1 w-24 rounded-xl" />
+                      <div className="space-y-4">
+                        <p className="text-sm font-medium text-deep-teal border-b border-deep-teal/20 pb-1">Image &amp; settings</p>
+                        <div>
+                          <Label>Slide image</Label>
+                          <SlideImageUpload key={s.id} name="image_url" defaultUrl={s.image_url} className="mt-1" />
                         </div>
-                        <label className="flex items-center gap-2">
-                          <input type="checkbox" name="is_active" defaultChecked={s.is_active} />
-                          <span className="text-sm">Active</span>
-                        </label>
-                      </div>
-                      <div>
-                        <Label>Slide image (upload or drop)</Label>
-                        <SlideImageUpload key={s.id} name="image_url" defaultUrl={s.image_url} className="mt-1" />
+                        <div className="flex flex-wrap items-center gap-4">
+                          <div>
+                            <Label className="text-xs">Display order</Label>
+                            <Input name="display_order" type="number" defaultValue={s.display_order} className="mt-1 w-20 rounded-xl" />
+                          </div>
+                          <label className="flex items-center gap-2 pt-6">
+                            <input type="checkbox" name="is_active" defaultChecked={s.is_active} />
+                            <span className="text-sm">Active (show on site)</span>
+                          </label>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex gap-2 pt-2">
+                    <div className="flex gap-2 pt-2 border-t border-deep-teal/10">
                       <Button type="submit" size="sm" className="rounded-xl">Save changes</Button>
                       <Button type="button" variant="outline" size="sm" className="rounded-xl" onClick={() => setEditingSlide(null)}>Cancel</Button>
                     </div>
                   </form>
                 ) : (
-                  <div className="flex flex-col sm:flex-row">
-                    <div className="w-full sm:w-56 shrink-0 aspect-video sm:aspect-square bg-deep-teal/10">
+                  <div className="flex flex-col sm:flex-row sm:items-stretch">
+                    <div className="w-full sm:w-48 shrink-0 aspect-video sm:aspect-square bg-deep-teal/10">
                       {s.image_url ? (
                         <img src={s.image_url} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-400">
-                          <ImageIcon className="h-12 w-12" />
+                          <ImageIcon className="h-10 w-10" />
                         </div>
                       )}
                     </div>
-                    <div className="flex-1 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex-1 p-4 flex flex-col justify-between gap-3">
                       <div>
-                        <p className="font-semibold text-deep-teal">{s.title}</p>
+                        <p className="font-semibold text-deep-teal">{s.title || "Untitled slide"}</p>
                         <p className="text-sm text-slate-500 mt-0.5 line-clamp-2">{s.description || "No description"}</p>
-                        <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded-full bg-deep-teal/10 text-deep-teal">
-                          Order: {s.display_order} • {s.is_active ? "Active" : "Inactive"}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <div className="flex rounded-xl overflow-hidden border border-deep-teal/20">
-                          <form action={async (fd) => { await reorderSlide(fd); showMsg("Order updated.") }} className="inline">
-                            <input type="hidden" name="slideId" value={s.id} />
-                            <input type="hidden" name="direction" value="up" />
-                            <Button type="submit" size="sm" variant="ghost" className="rounded-none h-8 px-2" title="Move up" aria-label="Move up">
-                              <ChevronUp className="h-4 w-4" />
-                            </Button>
-                          </form>
-                          <form action={async (fd) => { await reorderSlide(fd); showMsg("Order updated.") }} className="inline">
-                            <input type="hidden" name="slideId" value={s.id} />
-                            <input type="hidden" name="direction" value="down" />
-                            <Button type="submit" size="sm" variant="ghost" className="rounded-none h-8 px-2 border-l border-deep-teal/20" title="Move down" aria-label="Move down">
-                              <ChevronDown className="h-4 w-4" />
-                            </Button>
-                          </form>
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${s.is_active ? "bg-success-green/20 text-success-green" : "bg-slate-200 text-slate-600"}`}>
+                            {s.is_active ? "Active" : "Inactive"}
+                          </span>
                         </div>
-                        <Button size="sm" variant="outline" className="rounded-xl" onClick={() => setEditingSlide(s.id)}>Edit</Button>
-                        <form action={async () => { await deleteSlide(s.id) }} className="inline">
-                          <Button type="submit" size="sm" variant="outline" className="rounded-xl text-error-red border-error-red/50">Remove</Button>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <form
+                          action={async (fd) => {
+                            const order = parseInt((fd.get("display_order") as string) || "0", 10)
+                            const r = await updateSlideOrder(s.id, order)
+                            if (r?.error) showMsg(r.error)
+                            else { showMsg("Order saved."); router.refresh() }
+                          }}
+                          className="flex items-center gap-2"
+                        >
+                          <Label htmlFor={`order-${s.id}`} className="text-xs whitespace-nowrap">Order:</Label>
+                          <Input
+                            id={`order-${s.id}`}
+                            name="display_order"
+                            type="number"
+                            defaultValue={s.display_order}
+                            className="w-16 h-8 text-sm"
+                            min={0}
+                          />
+                          <Button type="submit" size="sm" variant="secondary" className="h-8">Save</Button>
+                        </form>
+                        <Button size="sm" variant="outline" className="rounded-lg" onClick={() => setEditingSlide(s.id)}>Edit</Button>
+                        <form action={async () => { const r = await deleteSlide(s.id); if (r?.error) showMsg(r.error); else { showMsg("Removed."); router.refresh() } }} className="inline">
+                          <Button type="submit" size="sm" variant="outline" className="rounded-lg text-red-600 border-red-200 hover:bg-red-50">Remove</Button>
                         </form>
                       </div>
                     </div>
@@ -301,40 +316,44 @@ export function LandingPageAdminTabs({
                   if (r.error) showMsg(r.error)
                   else showMsg("Slide created.")
                 }}
-                className="space-y-5"
+                className="space-y-6"
               >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="space-y-4">
+                    <p className="text-sm font-medium text-deep-teal border-b border-deep-teal/20 pb-1">Content</p>
                     <div>
                       <Label>Title</Label>
-                      <Input name="title" placeholder="Welcome to EduPlatform" className="mt-1 rounded-xl" />
+                      <Input name="title" placeholder="e.g. Welcome to EduPlatform" className="mt-1 rounded-xl" />
                     </div>
                     <div>
-                      <Label>Description</Label>
-                      <Textarea name="description" placeholder="Subtitle or short description" rows={2} className="mt-1 rounded-xl" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label>CTA text</Label>
-                        <Input name="cta_text" placeholder="Get Started" className="mt-1 rounded-xl" />
-                      </div>
-                      <div>
-                        <Label>CTA link (optional)</Label>
-                        <Input name="cta_link" placeholder="/signup" className="mt-1 rounded-xl" />
-                      </div>
+                      <Label>Description (optional)</Label>
+                      <Textarea name="description" placeholder="Short text on the slide" rows={2} className="mt-1 rounded-xl" />
                     </div>
                     <div>
-                      <Label>Display order</Label>
-                      <Input name="display_order" type="number" defaultValue={slides.length} className="mt-1 w-24 rounded-xl" />
+                      <Label>Button text (CTA)</Label>
+                      <Input name="cta_text" placeholder="Get Started" className="mt-1 rounded-xl" />
                     </div>
-                    <label className="flex items-center gap-2">
-                      <input type="checkbox" name="is_active" defaultChecked />
-                      <span className="text-sm">Active</span>
-                    </label>
+                    <div>
+                      <Label>Button link (optional)</Label>
+                      <Input name="cta_link" placeholder="/signup" className="mt-1 rounded-xl" />
+                    </div>
                   </div>
-                  <div>
-                    <Label>Slide image (upload or drop)</Label>
-                    <SlideImageUpload name="image_url" className="mt-1" />
+                  <div className="space-y-4">
+                    <p className="text-sm font-medium text-deep-teal border-b border-deep-teal/20 pb-1">Image &amp; settings</p>
+                    <div>
+                      <Label>Slide image</Label>
+                      <SlideImageUpload name="image_url" className="mt-1" />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-4">
+                      <div>
+                        <Label className="text-xs">Display order</Label>
+                        <Input name="display_order" type="number" defaultValue={slides.length} className="mt-1 w-20 rounded-xl" />
+                      </div>
+                      <label className="flex items-center gap-2 pt-6">
+                        <input type="checkbox" name="is_active" defaultChecked />
+                        <span className="text-sm">Active</span>
+                      </label>
+                    </div>
                   </div>
                 </div>
                 <Button type="submit" size="sm" className="rounded-xl">Create slide</Button>
@@ -393,74 +412,20 @@ export function LandingPageAdminTabs({
         <Card>
           <CardHeader>
             <CardTitle>Testimonials</CardTitle>
-            <p className="text-sm text-slate-500">Only students can add testimonials (after entering a course). Here you can approve, reorder, or remove them.</p>
+            <p className="text-sm text-slate-500">Students can add testimonials after finishing content. New testimonials are shown on the homepage automatically; they cannot be edited or removed here.</p>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4">
             {testimonials.map((t: any) => (
-              <div key={t.id} className="rounded-lg border p-4 space-y-3">
-                {editingTestimonial === t.id ? (
-                  <form
-                    action={async (fd) => {
-                      const r = await updateTestimonial(t.id, fd)
-                      if (r.error) showMsg(r.error)
-                      else {
-                        setEditingTestimonial(null)
-                        showMsg("Updated.")
-                      }
-                    }}
-                    className="space-y-3"
-                  >
-                    <div>
-                      <Label>Student name</Label>
-                      <Input name="student_name" defaultValue={t.student_name} className="mt-1" />
-                    </div>
-                    <div>
-                      <Label>Role / Course</Label>
-                      <Input name="student_role_or_course" defaultValue={t.student_role_or_course || ""} className="mt-1" />
-                    </div>
-                    <div>
-                      <Label>Rating (1-5)</Label>
-                      <Input name="rating" type="number" min={1} max={5} defaultValue={t.rating} className="mt-1 w-20" />
-                    </div>
-                    <div>
-                      <Label>Quote</Label>
-                      <Textarea name="quote" defaultValue={t.quote} rows={3} className="mt-1" />
-                    </div>
-                    <div>
-                      <Label>Display order</Label>
-                      <Input name="display_order" type="number" defaultValue={t.display_order} className="mt-1 w-24" />
-                    </div>
-                    <label className="flex items-center gap-2">
-                      <input type="checkbox" name="is_active" defaultChecked={t.is_active} />
-                      <span className="text-sm">Active</span>
-                    </label>
-                    <div className="flex gap-2">
-                      <Button type="submit" size="sm">Save</Button>
-                      <Button type="button" variant="outline" size="sm" onClick={() => setEditingTestimonial(null)}>Cancel</Button>
-                    </div>
-                  </form>
-                ) : (
-                  <>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium">{t.student_name}</p>
-                        <p className="text-sm text-slate-500">{t.student_role_or_course}</p>
-                        <p className="mt-2 text-slate-600">&ldquo;{t.quote}&rdquo;</p>
-                        <span className={`text-xs px-2 py-0.5 rounded mt-2 inline-block ${t.is_active ? "bg-success-green/20 text-success-green" : "bg-slate-200"}`}>
-                          {t.is_active ? "Active" : "Inactive"} • Rating: {t.rating}
-                        </span>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => setEditingTestimonial(t.id)}>Edit</Button>
-                        <form action={async () => { await deleteTestimonial(t.id) }} className="inline">
-                          <Button type="submit" size="sm" variant="outline" className="text-error-red border-error-red/50">Delete</Button>
-                        </form>
-                      </div>
-                    </div>
-                  </>
-                )}
+              <div key={t.id} className="rounded-lg border p-4">
+                <p className="font-medium">{t.student_name}</p>
+                <p className="text-sm text-slate-500">{t.student_role_or_course}</p>
+                <p className="mt-2 text-slate-600">&ldquo;{t.quote}&rdquo;</p>
+                <span className="text-xs text-slate-400 mt-2 inline-block">Rating: {t.rating}</span>
               </div>
             ))}
+            {testimonials.length === 0 && (
+              <p className="text-sm text-slate-500">No testimonials yet. Students will see the option after they complete some course content.</p>
+            )}
           </CardContent>
         </Card>
       )}
@@ -469,27 +434,18 @@ export function LandingPageAdminTabs({
         <Card>
           <CardHeader>
             <CardTitle>Statistics</CardTitle>
-            <p className="text-sm text-slate-500">Homepage stats (students, courses, teachers, rating). Auto-sync from database.</p>
+            <p className="text-sm text-slate-500">Homepage stats (students, courses, teachers, rating). Synced automatically when you open this page.</p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <form
-              action={async () => {
-                const r = await refreshPlatformStats()
-                if (r.error) showMsg(r.error)
-                else showMsg("Stats refreshed from database.")
-              }}
-            >
-              <Button type="submit">Auto-sync stats from database</Button>
-            </form>
+          <CardContent>
             <div className="rounded-lg border p-4">
-              <p className="text-sm font-medium text-slate-600 mb-2">Current platform_stats table (and about_section numbers):</p>
+              <p className="text-sm font-medium text-slate-600 mb-2">Current stats (shown on homepage):</p>
               <ul className="space-y-1 text-sm">
                 {platformStats.map((s: any) => (
                   <li key={s.stat_key}>
                     <span className="font-medium">{s.stat_label ?? s.stat_key}:</span> {s.stat_value}
                   </li>
                 ))}
-                {platformStats.length === 0 && <li className="text-slate-500">No stats yet. Click Auto-sync to populate from live data.</li>}
+                {platformStats.length === 0 && <li className="text-slate-500">No stats yet. They will populate from live data when you load this page.</li>}
               </ul>
             </div>
           </CardContent>

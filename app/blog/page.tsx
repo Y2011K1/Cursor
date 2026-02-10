@@ -4,7 +4,7 @@ import { LandingHeader } from "@/components/landing-header"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
-export const revalidate = 60
+export const revalidate = 300
 
 export default async function BlogPage() {
   const supabase = await createClient()

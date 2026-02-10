@@ -1,12 +1,14 @@
-import { redirect, notFound } from "next/navigation"
+import { notFound } from "next/navigation"
 import { requireRole } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
-import { BookOpen, FileText, Clock, PlayCircle, CheckCircle2 } from "lucide-react"
+import { Footer } from "@/components/footer"
+import { FileText, Clock, PlayCircle, CheckCircle2, File } from "lucide-react"
 import Link from "next/link"
 import { LeaveCourseButton } from "@/components/leave-course-button"
+import { MaterialAccessButton } from "@/components/material-access-button"
 
 interface ClassroomPageProps {
   params: Promise<{ classroomId: string }>
@@ -17,7 +19,6 @@ export default async function ClassroomPage({ params }: ClassroomPageProps) {
   const profile = await requireRole("student")
   const supabase = await createClient()
 
-  // Verify student is enrolled in this classroom
   const { data: enrollment } = await supabase
     .from("enrollments")
     .select(`
@@ -26,7 +27,8 @@ export default async function ClassroomPage({ params }: ClassroomPageProps) {
         id,
         name,
         description,
-        teacher:profiles!courses_teacher_id_fkey (
+        subject,
+        teacher:profiles!classrooms_teacher_id_fkey (
           id,
           full_name
         )
@@ -43,8 +45,7 @@ export default async function ClassroomPage({ params }: ClassroomPageProps) {
 
   const classroom = enrollment.course as any
 
-  // Get all data in parallel for better performance
-  const [lessonsResult, quizzesResult, examsResult] = await Promise.all([
+  const [lessonsResult, quizzesResult, examsResult, materialsResult] = await Promise.all([
     supabase
       .from("lessons")
       .select("*")
@@ -62,15 +63,21 @@ export default async function ClassroomPage({ params }: ClassroomPageProps) {
       .select("*")
       .eq("course_id", classroomId)
       .eq("is_published", true)
-      .order("created_at", { ascending: false })
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("course_materials")
+      .select("*")
+      .eq("course_id", classroomId)
+      .eq("is_published", true)
+      .order("order_index", { ascending: true })
   ])
 
-  const lessons = lessonsResult.data
-  const quizzes = quizzesResult.data
-  const exams = examsResult.data
+  const lessons = lessonsResult.data || []
+  const quizzes = quizzesResult.data || []
+  const exams = examsResult.data || []
+  const materials = materialsResult.data || []
 
-  // Get lesson progress (only if there are lessons)
-  const lessonIds = lessons?.map((l) => l.id) || []
+  const lessonIds = lessons.map((l) => l.id)
   const { data: progress } = lessonIds.length > 0
     ? await supabase
         .from("lesson_progress")
@@ -84,194 +91,208 @@ export default async function ClassroomPage({ params }: ClassroomPageProps) {
     progressMap.set(p.lesson_id, p.is_completed)
   })
 
+  const sectionCardClass = "border-none shadow-md hover:shadow-lg transition-shadow rounded-2xl"
+  const emptyCardClass = "border-none shadow-sm rounded-2xl bg-white/80"
+
   return (
-    <div className="min-h-screen bg-light-sky">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex flex-col">
       <Navigation userRole="student" userName={profile.full_name} />
-      <div className="p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
+      <div className="p-6 md:p-8 flex-1">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Header - same for every course */}
+          <div className="bg-gradient-to-r from-deep-teal/10 via-soft-mint/10 to-success-green/10 rounded-2xl p-6 border border-deep-teal/10">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-deep-teal mb-2">
+                <h1 className="text-2xl md:text-3xl font-bold text-deep-teal mb-2">
                   {classroom.name}
                 </h1>
-                <div className="space-y-1">
-                  {classroom.subject && (
-                    <p className="text-lg text-slate-blue font-medium">
-                      Subject: {classroom.subject}
-                    </p>
-                  )}
-                  <p className="text-slate-blue">
-                    Teacher: {classroom.teacher?.full_name || "Unknown"}
-                  </p>
-                </div>
+                {classroom.subject && (
+                  <p className="text-slate-blue font-medium">Subject: {classroom.subject}</p>
+                )}
+                <p className="text-slate-blue text-sm mt-1">
+                  Teacher: {classroom.teacher?.full_name ?? "Unknown"}
+                </p>
+                {classroom.description && (
+                  <p className="text-slate-blue mt-2 text-sm">{classroom.description}</p>
+                )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 shrink-0">
                 <Button variant="outline" asChild>
                   <Link href="/dashboard/student">Back to Dashboard</Link>
                 </Button>
-                <LeaveCourseButton courseId={classroomId} courseName={classroom?.name || "Course"} />
+                <LeaveCourseButton courseId={classroomId} courseName={classroom?.name ?? "Course"} />
               </div>
             </div>
-            {classroom.description && (
-              <p className="text-slate-blue mt-2">{classroom.description}</p>
-            )}
           </div>
 
-          <div className="space-y-6">
-            {/* Lessons Section */}
-            {lessons && lessons.length > 0 && (
-              <div>
-                <h2 className="text-2xl font-semibold text-deep-teal mb-4">
-                  Lessons
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {lessons.map((lesson, index) => {
-                    const isCompleted = progressMap.get(lesson.id) || false
-                    return (
-                      <Card
-                        key={lesson.id}
-                        className="border-0 shadow-md hover:shadow-lg transition-shadow"
-                      >
-                        <CardHeader>
-                          <CardTitle className="text-deep-teal flex items-center gap-2">
-                            <PlayCircle className="h-4 w-4" />
-                            Lesson {index + 1}: {lesson.title}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          {lesson.content && (
-                            <p className="text-sm text-slate-blue line-clamp-2">
-                              {lesson.content}
-                            </p>
-                          )}
-                          <div className="flex items-center justify-between">
-                            {isCompleted ? (
-                              <span className="text-xs text-success-green flex items-center gap-1">
-                                <CheckCircle2 className="h-3 w-3" />
-                                Completed
-                              </span>
-                            ) : (
-                              <span className="text-xs text-slate-blue">Not started</span>
-                            )}
-                            <Button size="sm" asChild>
-                              <Link href={`/dashboard/student/course/${classroomId}/lesson/${lesson.id}`}>
-                                View Lesson
-                              </Link>
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Quizzes Section */}
-            {quizzes && quizzes.length > 0 && (
-              <div>
-                <h2 className="text-2xl font-semibold text-deep-teal mb-4">
-                  Quizzes (Assignments)
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {quizzes.map((quiz) => (
-                    <Card
-                      key={quiz.id}
-                      className="border-0 shadow-md hover:shadow-lg transition-shadow"
-                    >
+          {/* 1. Lessons - always show same section layout */}
+          <div>
+            <h2 className="text-xl font-semibold text-deep-teal mb-4 flex items-center gap-2">
+              <PlayCircle className="h-5 w-5" />
+              Lessons
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {lessons.length > 0 ? (
+                lessons.map((lesson: any, index: number) => {
+                  const isCompleted = progressMap.get(lesson.id) ?? false
+                  return (
+                    <Card key={lesson.id} className={sectionCardClass}>
                       <CardHeader>
-                        <CardTitle className="text-deep-teal flex items-center gap-2">
-                          <FileText className="h-4 w-4" />
-                          {quiz.title}
+                        <CardTitle className="text-deep-teal flex items-center gap-2 text-base">
+                          Lesson {index + 1}: {lesson.title}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        {quiz.description && (
-                          <p className="text-sm text-slate-blue line-clamp-2">
-                            {quiz.description}
-                          </p>
+                        {lesson.content && (
+                          <p className="text-sm text-slate-blue line-clamp-2">{lesson.content}</p>
                         )}
-                        <div className="flex items-center gap-2 text-xs text-slate-blue">
-                          {quiz.time_limit_minutes && (
-                            <span>⏱️ {quiz.time_limit_minutes} min</span>
+                        <div className="flex items-center justify-between">
+                          {isCompleted ? (
+                            <span className="text-xs text-success-green flex items-center gap-1">
+                              <CheckCircle2 className="h-3 w-3" /> Completed
+                            </span>
+                          ) : (
+                            <span className="text-xs text-slate-blue">Not started</span>
                           )}
-                          <span>Max attempts: {quiz.max_attempts}</span>
+                          <Button size="sm" asChild>
+                            <Link href={`/dashboard/student/course/${classroomId}/lesson/${lesson.id}`}>
+                              View Lesson
+                            </Link>
+                          </Button>
                         </div>
-                        <Button size="sm" className="w-full" asChild>
-                          <Link href={`/dashboard/student/course/${classroomId}/quiz/${quiz.id}`}>
-                            Take Quiz
-                          </Link>
-                        </Button>
                       </CardContent>
                     </Card>
-                  ))}
-                </div>
-              </div>
-            )}
+                  )
+                })
+              ) : (
+                <Card className={emptyCardClass}>
+                  <CardContent className="py-6 text-center text-slate-blue text-sm">
+                    No lessons in this course yet. Check back later.
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
 
-            {/* Exams Section */}
-            {exams && exams.length > 0 && (
-              <div>
-                <h2 className="text-2xl font-semibold text-deep-teal mb-4">
-                  Exams
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {exams.map((exam) => (
-                    <Card
-                      key={exam.id}
-                      className="border-0 shadow-md hover:shadow-lg transition-shadow"
-                    >
-                      <CardHeader>
-                        <CardTitle className="text-deep-teal flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          {exam.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {exam.description && (
-                          <p className="text-sm text-slate-blue line-clamp-2">
-                            {exam.description}
-                          </p>
+          {/* 2. Course Materials - always show same section layout */}
+          <div>
+            <h2 className="text-xl font-semibold text-deep-teal mb-4 flex items-center gap-2">
+              <File className="h-5 w-5" />
+              Course Materials
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {materials.length > 0 ? (
+                materials.map((mat: any) => (
+                  <Card key={mat.id} className={sectionCardClass}>
+                    <CardHeader>
+                      <CardTitle className="text-deep-teal text-base">{mat.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex flex-wrap gap-2">
+                        <MaterialAccessButton
+                          materialId={mat.id}
+                          fileUrl={mat.file_url}
+                          fileName={mat.title}
+                          fileType={mat.file_type}
+                          showView
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card className={emptyCardClass}>
+                  <CardContent className="py-6 text-center text-slate-blue text-sm">
+                    No materials in this course yet. Check back later.
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+
+          {/* 3. Quizzes (Assignments) - always show same section layout */}
+          <div>
+            <h2 className="text-xl font-semibold text-deep-teal mb-4 flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Quizzes (Assignments)
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {quizzes.length > 0 ? (
+                quizzes.map((quiz: any) => (
+                  <Card key={quiz.id} className={sectionCardClass}>
+                    <CardHeader>
+                      <CardTitle className="text-deep-teal text-base">{quiz.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {quiz.description && (
+                        <p className="text-sm text-slate-blue line-clamp-2">{quiz.description}</p>
+                      )}
+                      <div className="flex items-center gap-2 text-xs text-slate-blue">
+                        {quiz.time_limit_minutes && <span>⏱️ {quiz.time_limit_minutes} min</span>}
+                        <span>Max attempts: {quiz.max_attempts ?? "—"}</span>
+                      </div>
+                      <Button size="sm" className="w-full" asChild>
+                        <Link href={`/dashboard/student/course/${classroomId}/quiz/${quiz.id}`}>
+                          Take Quiz
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card className={emptyCardClass}>
+                  <CardContent className="py-6 text-center text-slate-blue text-sm">
+                    No quizzes in this course yet. Check back later.
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+
+          {/* 4. Exams - always show same section layout */}
+          <div>
+            <h2 className="text-xl font-semibold text-deep-teal mb-4 flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Exams
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {exams.length > 0 ? (
+                exams.map((exam: any) => (
+                  <Card key={exam.id} className={sectionCardClass}>
+                    <CardHeader>
+                      <CardTitle className="text-deep-teal text-base">{exam.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {exam.description && (
+                        <p className="text-sm text-slate-blue line-clamp-2">{exam.description}</p>
+                      )}
+                      <div className="flex items-center gap-2 text-xs text-slate-blue">
+                        <span>⏱️ {exam.time_limit_minutes ?? "—"} min</span>
+                        <span>One attempt only</span>
+                        {exam.due_date && (
+                          <span>📅 Due: {new Date(exam.due_date).toLocaleDateString()}</span>
                         )}
-                        <div className="flex items-center gap-2 text-xs text-slate-blue">
-                          <span>⏱️ {exam.time_limit_minutes} min</span>
-                          <span>One attempt only</span>
-                          {exam.due_date && (
-                            <span>📅 Due: {new Date(exam.due_date).toLocaleDateString()}</span>
-                          )}
-                        </div>
-                        <Button size="sm" className="w-full" asChild>
-                          <Link href={`/dashboard/student/course/${classroomId}/exam/${exam.id}`}>
-                            Take Exam
-                          </Link>
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {(!lessons || lessons.length === 0) && (!quizzes || quizzes.length === 0) && (!exams || exams.length === 0) && (
-              <Card className="border-0 shadow-md">
-                <CardHeader>
-                  <CardTitle className="text-deep-teal">No Content Available</CardTitle>
-                  <CardDescription>
-                    This classroom doesn&apos;t have any published content yet
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-slate-blue">
-                    Check back later or contact your teacher for more information.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+                      </div>
+                      <Button size="sm" className="w-full" asChild>
+                        <Link href={`/dashboard/student/course/${classroomId}/exam/${exam.id}`}>
+                          Take Exam
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card className={emptyCardClass}>
+                  <CardContent className="py-6 text-center text-slate-blue text-sm">
+                    No exams in this course yet. Check back later.
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

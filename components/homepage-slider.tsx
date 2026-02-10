@@ -15,7 +15,12 @@ interface Slide {
   display_order: number
 }
 
-export function HomepageSlider() {
+interface HomepageSliderProps {
+  /** Rendered when there are no active slides (e.g. about image or placeholder) */
+  fallback?: React.ReactNode
+}
+
+export function HomepageSlider({ fallback }: HomepageSliderProps) {
   const [slides, setSlides] = useState<Slide[]>([])
   const [index, setIndex] = useState(0)
 
@@ -41,7 +46,7 @@ export function HomepageSlider() {
     return () => clearInterval(id)
   }, [slides.length])
 
-  if (slides.length === 0) return null
+  if (slides.length === 0) return <>{fallback ?? null}</>
 
   const slide = slides[index]
 
