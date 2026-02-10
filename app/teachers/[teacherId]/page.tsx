@@ -165,7 +165,7 @@ export default async function TeacherProfilePage({
                   {courses.map((course: any) => (
                     <Link
                       key={course.id}
-                      href={`/dashboard/student/classroom/${course.id}`}
+                      href={`/dashboard/student/course/${course.id}/lessons`}
                       className="block p-4 rounded-lg border border-deep-teal/20 hover:bg-deep-teal/5 transition-colors"
                     >
                       <p className="font-medium text-deep-teal">{course.name}</p>

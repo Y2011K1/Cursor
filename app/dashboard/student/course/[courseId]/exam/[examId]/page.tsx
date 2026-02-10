@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
@@ -9,15 +9,10 @@ import { ArrowLeft, Clock, CheckCircle2, XCircle, Loader2, AlertTriangle } from 
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 
-interface ExamPageProps {
-  params: {
-    courseId: string
-    examId: string
-  }
-}
-
-export default function StudentExamPage({ params }: ExamPageProps) {
-  const { courseId, examId } = params
+export default function StudentExamPage() {
+  const params = useParams()
+  const courseId = params.courseId as string
+  const examId = params.examId as string
   const router = useRouter()
   const supabase = createClient()
   const [exam, setExam] = useState<any>(null)
@@ -63,19 +58,22 @@ export default function StudentExamPage({ params }: ExamPageProps) {
 
         setProfile(profileResult.data)
 
-        if (classroomResult.data) {
-          const { data: enrollment } = await supabase
-            .from("enrollments")
-            .select("id")
-            .eq("student_id", user.id)
-            .eq("course_id", classroomResult.data.id)
-            .eq("is_active", true)
-            .single()
+        if (!classroomResult.data) {
+          router.push("/dashboard/student")
+          return
+        }
 
-          if (!enrollment) {
-            router.push("/dashboard/student")
-            return
-          }
+        const { data: enrollment } = await supabase
+          .from("enrollments")
+          .select("id")
+          .eq("student_id", user.id)
+          .eq("course_id", classroomResult.data.id)
+          .eq("is_active", true)
+          .single()
+
+        if (!enrollment) {
+          router.push(`/dashboard/student?course=${courseId}`)
+          return
         }
 
         // Get exam, questions, and submission in parallel
@@ -97,7 +95,7 @@ export default function StudentExamPage({ params }: ExamPageProps) {
 
         const examData = examResult.data
         if (!examData) {
-          router.push(`/dashboard/student/classroom/${courseId}`)
+          router.push(`/dashboard/student/course/${courseId}/exams`)
           return
         }
 
@@ -179,7 +177,8 @@ export default function StudentExamPage({ params }: ExamPageProps) {
       }
     }
 
-    loadData()
+    if (courseId && examId) loadData()
+    else setIsLoading(false)
 
     return () => clearTimeout(longLoadingTimer)
   }, [courseId, examId, router, supabase])
@@ -307,6 +306,17 @@ export default function StudentExamPage({ params }: ExamPageProps) {
       <Navigation userRole="student" userName={profile.full_name} />
       <div className="p-8">
         <div className="max-w-4xl mx-auto">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <Button variant="ghost" size="sm" asChild className="text-slate-blue hover:text-deep-teal -ml-2">
+              <Link href={`/dashboard/student/course/${courseId}/exams`}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Exams
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="text-slate-blue hover:text-deep-teal">
+              <Link href={`/dashboard/student?course=${courseId}`}>Dashboard</Link>
+            </Button>
+          </div>
           <div className="mb-6">
             <div className="flex items-start justify-between">
               <div>

@@ -43,7 +43,7 @@ export default async function StudentLessonPage({ params }: LessonPageProps) {
     .single()
 
   if (!enrollment) {
-    redirect("/dashboard/student")
+    redirect(`/dashboard/student?course=${courseId}`)
   }
 
   const { data: lesson } = await supabase
@@ -86,12 +86,19 @@ export default async function StudentLessonPage({ params }: LessonPageProps) {
       <div className="p-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <Button variant="ghost" size="sm" asChild className="text-slate-blue hover:text-deep-teal -ml-2">
-              <Link href="/dashboard/student">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button variant="ghost" size="sm" asChild className="text-slate-blue hover:text-deep-teal -ml-2">
+                <Link href={`/dashboard/student/course/${courseId}/lessons`}>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Video Lectures
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild className="text-slate-blue hover:text-deep-teal">
+                <Link href={`/dashboard/student?course=${courseId}`}>
+                  Dashboard
+                </Link>
+              </Button>
+            </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-3xl font-bold text-deep-teal mb-2">
                 {lesson.title}

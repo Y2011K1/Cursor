@@ -33,7 +33,5 @@ export async function trackMaterialAccess(materialId: string) {
   }
 
   revalidatePath("/dashboard/student")
-  revalidatePath("/dashboard/student/course-materials")
-  
   return { success: true }
 }

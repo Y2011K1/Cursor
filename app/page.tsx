@@ -279,9 +279,16 @@ async function LandingDeferredContent() {
         <section className="bg-white px-4 py-16 md:py-24" aria-labelledby="testimonials-heading">
           <div className="container mx-auto max-w-7xl">
             <h2 id="testimonials-heading" className="text-3xl font-bold text-deep-teal md:text-4xl">What Our Students Say</h2>
-            {testimonialsList.length > 0 ? (
+            {(() => {
+              const seenIds = new Set<string>()
+              const unique = (testimonialsList as any[]).filter((t) => {
+                if (!t?.id || seenIds.has(t.id)) return false
+                seenIds.add(t.id)
+                return true
+              })
+              return unique.length > 0 ? (
               <div className="mt-10 grid gap-8 md:grid-cols-3">
-                {testimonialsList.map((t: any) => (
+                {unique.map((t: any) => (
                   <Card key={t.id} className="relative overflow-hidden">
                     <Quote className="absolute right-4 top-4 h-10 w-10 text-deep-teal/10" aria-hidden />
                     <CardContent className="p-6">
@@ -299,7 +306,8 @@ async function LandingDeferredContent() {
               <div className="mt-10 rounded-xl border border-deep-teal/20 bg-light-sky/50 px-6 py-12 text-center">
                 <p className="text-slate-blue">No testimonials yet.</p>
               </div>
-            )}
+            )
+            })()}
           </div>
         </section>
 

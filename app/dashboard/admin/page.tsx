@@ -8,12 +8,6 @@ import { Navigation } from "@/components/navigation"
 import Link from "next/link"
 import { unstable_noStore as noStore } from "next/cache"
 import { calculateTotalPoints } from "@/lib/ranking"
-import nextDynamic from "next/dynamic"
-
-const ProgressBarDialog = nextDynamic(() => import("@/components/progress-bar-dialog").then(mod => ({ default: mod.ProgressBarDialog })), {
-  loading: () => null,
-})
-
 // Force dynamic rendering to always fetch fresh data
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -634,33 +628,26 @@ export default async function AdminDashboardPage() {
                                 {pointsInCurrentRank} / {pointsForNextRank} points
                               </div>
                             </div>
-                            <ProgressBarDialog
-                              lessonsCompleted={student.lessonsCompleted}
-                              materialsCompleted={student.materialsCompleted}
-                              assignmentsCompleted={student.assignmentsCompleted}
-                              examsCompleted={student.examsCompleted}
-                            >
-                              <div className="flex items-center gap-3 text-sm text-slate-600">
-                                <span className="font-medium min-w-[60px]">{studentRank.rank}</span>
-                                <div className="flex-1 max-w-[240px] relative group">
-                                  <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-                                    <div
-                                      className="bg-gradient-to-r from-deep-teal to-success-green h-2.5 rounded-full transition-all duration-700 ease-out relative"
-                                      style={{ width: `${progressPercent}%` }}
-                                    >
-                                      {progressPercent > 15 && (
-                                        <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
-                                          {Math.round(progressPercent)}%
-                                        </span>
-                                      )}
-                                    </div>
+                            <div className="flex items-center gap-3 text-sm text-slate-600">
+                              <span className="font-medium min-w-[60px]">{studentRank.rank}</span>
+                              <div className="flex-1 max-w-[240px] relative group">
+                                <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                                  <div
+                                    className="bg-gradient-to-r from-deep-teal to-success-green h-2.5 rounded-full transition-all duration-700 ease-out relative"
+                                    style={{ width: `${progressPercent}%` }}
+                                  >
+                                    {progressPercent > 15 && (
+                                      <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
+                                        {Math.round(progressPercent)}%
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
-                                <span className="font-medium flex items-center gap-1 min-w-[80px] justify-end">
-                                  {nextRankName} {nextRankIcon}
-                                </span>
                               </div>
-                            </ProgressBarDialog>
+                              <span className="font-medium flex items-center gap-1 min-w-[80px] justify-end">
+                                {nextRankName} {nextRankIcon}
+                              </span>
+                            </div>
                             {pointsNeeded > 0 && (
                               <div className="text-xs text-slate-600 text-center pt-1">
                                 {pointsNeeded} more {pointsNeeded === 1 ? 'point' : 'points'} to reach {nextRankName}

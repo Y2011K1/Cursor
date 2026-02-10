@@ -1,7 +1,9 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
+
+const LANDING_CACHE_TAG = "landing"
 
 export async function createTestimonialAsStudent(formData: FormData) {
   const supabase = await createClient()
@@ -13,6 +15,19 @@ export async function createTestimonialAsStudent(formData: FormData) {
 
   const quote = (formData.get("quote") as string)?.trim()
   if (!quote) return { error: "Quote is required" }
+
+  // Idempotency: avoid duplicate if same user submitted same quote in last 60 seconds (e.g. double-click)
+  const { data: recent } = await supabase
+    .from("testimonials")
+    .select("id")
+    .eq("student_id", user.id)
+    .eq("quote", quote)
+    .gte("created_at", new Date(Date.now() - 60_000).toISOString())
+    .limit(1)
+  if (recent?.length) {
+    revalidateTag(`${LANDING_CACHE_TAG}-deferred`)
+    return { error: null }
+  }
 
   const rating = Math.min(5, Math.max(1, parseInt((formData.get("rating") as string) || "5", 10)))
   const student_role_or_course = (formData.get("student_role_or_course") as string)?.trim() || null
@@ -28,8 +43,7 @@ export async function createTestimonialAsStudent(formData: FormData) {
   })
 
   if (error) return { error: error.message }
-  revalidatePath("/")
+  revalidateTag(`${LANDING_CACHE_TAG}-deferred`)
   revalidatePath("/dashboard/student")
-  revalidatePath("/dashboard/student/leave-testimonial")
   return { error: null }
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
@@ -9,15 +9,10 @@ import { ArrowLeft, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 
-interface QuizPageProps {
-  params: {
-    courseId: string
-    quizId: string
-  }
-}
-
-export default function StudentQuizPage({ params }: QuizPageProps) {
-  const { courseId, quizId } = params
+export default function StudentQuizPage() {
+  const params = useParams()
+  const courseId = params.courseId as string
+  const quizId = params.quizId as string
   const router = useRouter()
   const supabase = createClient()
   const [quiz, setQuiz] = useState<any>(null)
@@ -62,19 +57,22 @@ export default function StudentQuizPage({ params }: QuizPageProps) {
 
         setProfile(profileResult.data)
 
-        if (classroomResult.data) {
-          const { data: enrollment } = await supabase
-            .from("enrollments")
-            .select("id")
-            .eq("student_id", user.id)
-            .eq("course_id", classroomResult.data.id)
-            .eq("is_active", true)
-            .single()
+        if (!classroomResult.data) {
+          router.push("/dashboard/student")
+          return
+        }
 
-          if (!enrollment) {
-            router.push("/dashboard/student")
-            return
-          }
+        const { data: enrollment } = await supabase
+          .from("enrollments")
+          .select("id")
+          .eq("student_id", user.id)
+          .eq("course_id", classroomResult.data.id)
+          .eq("is_active", true)
+          .single()
+
+        if (!enrollment) {
+          router.push(`/dashboard/student?course=${courseId}`)
+          return
         }
 
         // Get quiz, questions, and submission in parallel
@@ -103,7 +101,7 @@ export default function StudentQuizPage({ params }: QuizPageProps) {
 
         const quizData = quizResult.data
         if (!quizData) {
-          router.push(`/dashboard/student/classroom/${courseId}`)
+          router.push(`/dashboard/student/course/${courseId}/assignments`)
           return
         }
 
@@ -173,7 +171,8 @@ export default function StudentQuizPage({ params }: QuizPageProps) {
       }
     }
 
-    loadData()
+    if (courseId && quizId) loadData()
+    else setIsLoading(false)
 
     return () => clearTimeout(longLoadingTimer)
   }, [courseId, quizId, router, supabase])
@@ -286,6 +285,17 @@ export default function StudentQuizPage({ params }: QuizPageProps) {
       <Navigation userRole="student" userName={profile.full_name} />
       <div className="p-8">
         <div className="max-w-4xl mx-auto">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <Button variant="ghost" size="sm" asChild className="text-slate-blue hover:text-deep-teal -ml-2">
+              <Link href={`/dashboard/student/course/${courseId}/assignments`}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Assignments
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="text-slate-blue hover:text-deep-teal">
+              <Link href={`/dashboard/student?course=${courseId}`}>Dashboard</Link>
+            </Button>
+          </div>
           <div className="mb-6">
             <div className="flex items-start justify-between">
               <div>

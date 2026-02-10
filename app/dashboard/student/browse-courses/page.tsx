@@ -95,6 +95,11 @@ export default async function BrowseCoursesPage({
             <BrowseCoursesFilters searchParams={params} />
           </aside>
           <main className="flex-1">
+            <div className="mb-4">
+              <Button variant="ghost" size="sm" asChild className="text-slate-blue hover:text-deep-teal -ml-2">
+                <Link href="/dashboard/student">← Back to Dashboard</Link>
+              </Button>
+            </div>
             <h1 className="text-3xl font-bold text-deep-teal mb-2">Browse Courses</h1>
             <p className="text-slate-blue mb-6">Filter and sort to find your next course</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -165,20 +170,15 @@ export default async function BrowseCoursesPage({
                         </span>
                       </div>
                       {isEnrolled ? (
-                        <Button className="w-full" disabled>
-                          Already Enrolled
+                        <Button className="w-full bg-deep-teal hover:bg-deep-teal/90" asChild>
+                          <Link href={`/dashboard/student/course/${course.id}/lessons`}>View course</Link>
                         </Button>
                       ) : isFull ? (
                         <Button className="w-full" variant="outline" disabled>
                           Full
                         </Button>
                       ) : (
-                        <div className="flex gap-2">
-                          <Button asChild variant="outline" className="flex-1 border-deep-teal text-deep-teal">
-                            <Link href={`/dashboard/student/classroom/${course.id}`}>View</Link>
-                          </Button>
-                          <EnrollButton courseId={course.id} studentId={profile.id} />
-                        </div>
+                        <EnrollButton courseId={course.id} studentId={profile.id} />
                       )}
                     </CardContent>
                   </Card>

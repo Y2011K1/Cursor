@@ -206,11 +206,11 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
               <CardContent className="space-y-4">
                 {isEnrolled ? (
                   <Button asChild className="w-full bg-success-green hover:bg-success-green/90">
-                    <Link href={`/dashboard/student/classroom/${courseId}`}>Go to Course</Link>
+                    <Link href={`/dashboard/student/course/${courseId}/lessons`}>Go to Course</Link>
                   </Button>
                 ) : user ? (
                   <Button asChild className="w-full bg-deep-teal hover:bg-deep-teal/90">
-                    <Link href={`/dashboard/student/classroom/${courseId}`}>Enroll Now</Link>
+                    <Link href={`/dashboard/student/course/${courseId}/lessons`}>Enroll Now</Link>
                   </Button>
                 ) : (
                   <>
