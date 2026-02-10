@@ -25,7 +25,7 @@ export async function createTestimonialAsStudent(formData: FormData) {
     .gte("created_at", new Date(Date.now() - 60_000).toISOString())
     .limit(1)
   if (recent?.length) {
-    revalidateTag(`${LANDING_CACHE_TAG}-deferred`)
+    revalidateTag(`${LANDING_CACHE_TAG}-deferred`, "max")
     return { error: null }
   }
 
@@ -43,7 +43,7 @@ export async function createTestimonialAsStudent(formData: FormData) {
   })
 
   if (error) return { error: error.message }
-  revalidateTag(`${LANDING_CACHE_TAG}-deferred`)
+  revalidateTag(`${LANDING_CACHE_TAG}-deferred`, "max")
   revalidatePath("/dashboard/student")
   return { error: null }
 }
